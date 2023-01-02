@@ -108,7 +108,7 @@ class ShareFileFragment : Fragment() {
 
     private fun createShareChip(chipGroup: ChipGroup, username: String): Chip = (
         LayoutInflater.from(requireActivity())
-            .inflate(R.layout.chip_share, binding.root) as Chip
+            .inflate(R.layout.chip_share, null) as Chip
         ).apply {
         setOnClickListener {
 
