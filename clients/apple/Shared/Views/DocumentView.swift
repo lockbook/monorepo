@@ -49,11 +49,8 @@ struct DocumentView: View {
                     
                 case .Markdown:
                     #if os(iOS)
-                    GeometryReader { geo in
-                        EditorView(
-                            frame: geo.frame(in: .local)
-                        )
-                    }
+       
+                        EditorView()
                     .title(meta.name)
                     #else
                     EditorView().title(meta.name)
