@@ -6,6 +6,7 @@ struct EditorView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> UIView {
         let textView = CustomUITextView()
+        textView.becomeFirstResponder()
         return textView
     }
 

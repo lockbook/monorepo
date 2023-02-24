@@ -124,7 +124,7 @@ class CustomUITextView: UIView, UITextInput, UITextInputTokenizer {
     
     override var canBecomeFirstResponder: Bool {
         print("was asked")
-        return   true
+        return true
     }
     
     
