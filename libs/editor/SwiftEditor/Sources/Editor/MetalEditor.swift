@@ -1,3 +1,4 @@
+#if os(macOS)
 import SwiftUI
 import MetalKit
 import Combine
@@ -18,3 +19,4 @@ public struct MetalView: NSViewRepresentable {
     
     public func updateNSView(_ nsView: MTKView, context: NSViewRepresentableContext<MetalView>) {}
 }
+#endif

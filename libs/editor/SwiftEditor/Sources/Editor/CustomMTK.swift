@@ -1,7 +1,8 @@
+#if os(macOS)
 import MetalKit
 import Bridge
 
-public class CustomMTK: MTKView  {
+public class CustomMTK: MTKView {
     
     var trackingArea : NSTrackingArea?
     
@@ -209,3 +210,4 @@ public class FrameManager: NSObject, MTKViewDelegate {
         return str
     }
 }
+#endif
