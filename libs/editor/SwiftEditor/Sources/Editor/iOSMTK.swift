@@ -4,12 +4,11 @@ import MetalKit
 import Bridge
 
 public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer {
-    
     var editorHandle: UnsafeMutableRawPointer?
     
     override init(frame frameRect: CGRect, device: MTLDevice?) {
         super.init(frame: frameRect, device: device)
-
+        
         let metalLayer = UnsafeMutableRawPointer(Unmanaged.passRetained(self.layer).toOpaque())
         self.editorHandle = init_editor(metalLayer, "# hello world", false) // todo
         
@@ -24,133 +23,201 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
     }
     
     public func draw(in view: MTKView) {
-//        dark_mode(editorHandle, (view as! CustomMTK).isDarkMode())
+        //        dark_mode(editorHandle, (view as! CustomMTK).isDarkMode())
         set_scale(editorHandle, Float(self.contentScaleFactor))
         draw_editor(editorHandle)
     }
     
     public func insertText(_ text: String) {
+        print("\(#function)")
         insert_text(editorHandle, text)
         self.setNeedsDisplay(self.frame)
     }
     
-    public func rangeEnclosingPosition(_ position: UITextPosition, with granularity: UITextGranularity, inDirection direction: UITextDirection) -> UITextRange? {
-        nil
-    }
-    
-    public func isPosition(_ position: UITextPosition, atBoundary granularity: UITextGranularity, inDirection direction: UITextDirection) -> Bool {
-        false
-    }
-    
-    public func position(from position: UITextPosition, toBoundary granularity: UITextGranularity, inDirection direction: UITextDirection) -> UITextPosition? {
-        nil
-    }
-    
-    public func isPosition(_ position: UITextPosition, withinTextUnit granularity: UITextGranularity, inDirection direction: UITextDirection) -> Bool {
-        false
-    }
-    
     public func text(in range: UITextRange) -> String? {
-        nil
+        print("\(#function)")
+        return nil
     }
+    
     
     public func replace(_ range: UITextRange, withText text: String) {
+        print("\(#function)")
         
     }
     
-    public var selectedTextRange: UITextRange?
+    public var selectedTextRange: UITextRange? {
+        set {
+            print("\(#function)")
+        }
+        
+        get {
+            print("\(#function)")
+            return nil
+        }
+    }
     
-    public var markedTextRange: UITextRange?
+    public var markedTextRange: UITextRange? {
+        set {
+            print("\(#function)")
+        }
+        
+        get {
+            print("\(#function)")
+            return nil
+        }
+    }
     
-    public var markedTextStyle: [NSAttributedString.Key : Any]?
+    public var markedTextStyle: [NSAttributedString.Key : Any]? {
+        set {
+            print("\(#function)")
+        }
+        
+        get {
+            print("\(#function)")
+            return nil
+        }
+    }
     
     public func setMarkedText(_ markedText: String?, selectedRange: NSRange) {
-        
+        print("\(#function)")
     }
     
     public func unmarkText() {
-        
+        print("\(#function)")
     }
     
-    public var beginningOfDocument: UITextPosition = UITextPosition.init()
+    public var beginningOfDocument: UITextPosition {
+        print("\(#function)")
+        return UITextPosition.init()
+    }
     
-    public var endOfDocument: UITextPosition = UITextPosition.init()
+    public var endOfDocument: UITextPosition {
+        print("\(#function)")
+        return UITextPosition.init()
+    }
     
     public func textRange(from fromPosition: UITextPosition, to toPosition: UITextPosition) -> UITextRange? {
-        nil
+        print("\(#function)")
+        return nil
     }
     
     public func position(from position: UITextPosition, offset: Int) -> UITextPosition? {
-        nil
+        print("\(#function)")
+        return nil
     }
     
     public func position(from position: UITextPosition, in direction: UITextLayoutDirection, offset: Int) -> UITextPosition? {
-        nil
-        
+        print("\(#function)")
+        return nil
     }
     
     public func compare(_ position: UITextPosition, to other: UITextPosition) -> ComparisonResult {
-        ComparisonResult.orderedAscending
+        print("\(#function)")
+        return ComparisonResult.orderedAscending
     }
     
     public func offset(from: UITextPosition, to toPosition: UITextPosition) -> Int {
-        0
+        print("\(#function)")
+        return 0
     }
     
-    public var inputDelegate: UITextInputDelegate?
+    public var inputDelegate: UITextInputDelegate? {
+        set {
+            print("\(#function)")
+        }
+        
+        get {
+            print("\(#function)")
+            return nil
+        }
+    }
     
     public var tokenizer: UITextInputTokenizer  {
-        self
+        print("\(#function)")
+        return self
     }
     
     public func position(within range: UITextRange, farthestIn direction: UITextLayoutDirection) -> UITextPosition? {
-        nil
+        print("\(#function)")
+        return nil
     }
     
     public func characterRange(byExtending position: UITextPosition, in direction: UITextLayoutDirection) -> UITextRange? {
-        nil
+        print("\(#function)")
+        return nil
     }
     
     public func baseWritingDirection(for position: UITextPosition, in direction: UITextStorageDirection) -> NSWritingDirection {
-        NSWritingDirection.natural
+        print("\(#function)")
+        return NSWritingDirection.natural
     }
     
     public func setBaseWritingDirection(_ writingDirection: NSWritingDirection, for range: UITextRange) {
-        
+        print("\(#function)")
     }
     
     public func firstRect(for range: UITextRange) -> CGRect {
-        CGRect.zero
+        print("\(#function)")
+        return CGRect.zero
     }
     
     public func caretRect(for position: UITextPosition) -> CGRect {
-        CGRect.zero
+        print("\(#function)")
+        return CGRect.zero
     }
     
     public func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
-        []
+        print("\(#function)")
+        return []
     }
     
     public func closestPosition(to point: CGPoint) -> UITextPosition? {
-        nil
+        print("\(#function)")
+        return nil
     }
     
     public func closestPosition(to point: CGPoint, within range: UITextRange) -> UITextPosition? {
-        nil
+        print("\(#function)")
+        return nil
     }
     
     public func characterRange(at point: CGPoint) -> UITextRange? {
-        nil
+        print("\(#function)")
+        return nil
     }
     
-    public var hasText: Bool = false
+    public var hasText: Bool {
+        print("\(#function)")
+        return false
+    }
     
     public func deleteBackward() {
-        print("back")
+        print("\(#function)")
+    }
+    
+    public func rangeEnclosingPosition(_ position: UITextPosition, with granularity: UITextGranularity, inDirection direction: UITextDirection) -> UITextRange? {
+        print("\(#function)")
+        return nil
+    }
+    
+    public func isPosition(_ position: UITextPosition, atBoundary granularity: UITextGranularity, inDirection direction: UITextDirection) -> Bool {
+        print("\(#function)")
+        return false
+    }
+    
+    public func position(from position: UITextPosition, toBoundary granularity: UITextGranularity, inDirection direction: UITextDirection) -> UITextPosition? {
+        print("\(#function)")
+        return nil
+    }
+    
+    public func isPosition(_ position: UITextPosition, withinTextUnit granularity: UITextGranularity, inDirection direction: UITextDirection) -> Bool {
+        print("\(#function)")
+        return false
     }
     
     public override var canBecomeFirstResponder: Bool {
-        print("was asked")
+        print("\(#function)")
+        print("canBecomeFirstResponder")
         return true
     }
     
