@@ -1,7 +1,5 @@
-use crate::apple::keyboard::NSKeys;
 use crate::{Editor, WgpuEditor};
-use egui::PointerButton::{Primary, Secondary};
-use egui::{Context, Event, Pos2, Vec2, Visuals};
+use egui::{Context, Visuals};
 use egui_wgpu_backend::wgpu::CompositeAlphaMode;
 use egui_wgpu_backend::{wgpu, ScreenDescriptor};
 use std::ffi::{c_char, c_void, CStr, CString};
@@ -19,7 +17,7 @@ pub unsafe extern "C" fn init_editor(
         pollster::block_on(request_device(&instance, backends, &surface));
     let format = surface.get_capabilities(&adapter).formats[0];
     let screen =
-        ScreenDescriptor { physical_width: 10000, physical_height: 10000, scale_factor: 1.0 };
+        ScreenDescriptor { physical_width: 1000, physical_height: 1000, scale_factor: 1.0 };
     let surface_config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         format,
@@ -83,77 +81,6 @@ pub extern "C" fn resize_editor(obj: *mut c_void, width: f32, height: f32, scale
 pub extern "C" fn set_scale(obj: *mut c_void, scale: f32) {
     let obj = unsafe { &mut *(obj as *mut WgpuEditor) };
     obj.screen.scale_factor = scale;
-}
-
-/// # Safety
-#[no_mangle]
-pub unsafe extern "C" fn key_event(
-    obj: *mut c_void, key_code: u16, shift: bool, ctrl: bool, option: bool, command: bool,
-    pressed: bool, characters: *const c_char,
-) {
-    let obj = &mut *(obj as *mut WgpuEditor);
-
-    let modifiers = egui::Modifiers { alt: option, ctrl, shift, mac_cmd: command, command };
-
-    obj.raw_input.modifiers = modifiers;
-
-    let key = NSKeys::from(key_code).unwrap();
-
-    let mut clip_event = false;
-    if pressed && key == NSKeys::V && modifiers.command {
-        let clip = obj.from_host.take().unwrap_or_default();
-        obj.raw_input.events.push(Event::Text(clip));
-        clip_event = true
-    }
-
-    // Event::Text
-    if !clip_event && pressed && (modifiers.shift_only() || modifiers.is_none()) && key.valid_text()
-    {
-        let text = CStr::from_ptr(characters).to_str().unwrap().to_string();
-        obj.raw_input.events.push(Event::Text(text));
-    }
-
-    // Event::Key
-    if let Some(key) = key.egui_key() {
-        obj.raw_input
-            .events
-            .push(Event::Key { key, pressed, modifiers });
-    }
-}
-
-/// # Safety
-#[no_mangle]
-pub unsafe extern "C" fn scroll_wheel(obj: *mut c_void, scroll_wheel: f32) {
-    let obj = &mut *(obj as *mut WgpuEditor);
-    obj.raw_input
-        .events
-        .push(Event::PointerMoved(Pos2::new(250.0, 250.0)));
-    obj.raw_input
-        .events
-        .push(Event::Scroll(Vec2::new(0.0, scroll_wheel * 2.0)))
-}
-
-/// # Safety
-#[no_mangle]
-pub unsafe extern "C" fn mouse_moved(obj: *mut c_void, x: f32, y: f32) {
-    let obj = &mut *(obj as *mut WgpuEditor);
-    obj.raw_input
-        .events
-        .push(Event::PointerMoved(Pos2 { x, y }))
-}
-
-/// # Safety
-#[no_mangle]
-pub unsafe extern "C" fn mouse_button(
-    obj: *mut c_void, x: f32, y: f32, pressed: bool, primary: bool,
-) {
-    let obj = &mut *(obj as *mut WgpuEditor);
-    obj.raw_input.events.push(Event::PointerButton {
-        pos: Pos2 { x, y },
-        button: if primary { Primary } else { Secondary },
-        pressed,
-        modifiers: Default::default(),
-    })
 }
 
 /// # Safety

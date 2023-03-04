@@ -25,6 +25,10 @@ pub mod unicode_segs;
 #[cfg(target_vendor = "apple")]
 pub mod apple;
 
+pub enum CustomEvents {
+    InsertText(String),
+}
+
 #[repr(C)]
 pub struct WgpuEditor {
     pub device: wgpu::Device,
@@ -53,11 +57,12 @@ impl WgpuEditor {
                 // This error occurs when the app is minimized on Windows.
                 // Silently return here to prevent spamming the console with:
                 // "The underlying surface has changed, and therefore the swap chain must be updated"
-                panic!("wgpu surface outdated")
+                eprintln!("wgpu::SurfaceError::Outdated");
+                return;
             }
             Err(e) => {
                 eprintln!("Dropped frame with error: {}", e);
-                panic!()
+                return;
             }
         };
         let output_view = output_frame

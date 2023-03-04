@@ -154,6 +154,8 @@ public class FrameManager: NSObject, MTKViewDelegate {
     }
     
     public func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+        // initially window is not set, this defaults to 1.0, initial frame comes from `init_editor`
+        // we probably want a setNeedsDisplay here
         let scale = self.parent.window?.backingScaleFactor ?? 1.0
         print(Float(size.width), Float(size.height), Float(scale))
         resize_editor(editorHandle, Float(size.width), Float(size.height), Float(scale))

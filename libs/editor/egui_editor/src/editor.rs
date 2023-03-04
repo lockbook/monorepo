@@ -7,7 +7,7 @@ use crate::images::ImageCache;
 use crate::layouts::Layouts;
 use crate::styles::StyleInfo;
 use crate::test_input::TEST_MARKDOWN;
-use crate::{ast, events, galleys, images, layouts, register_fonts, styles};
+use crate::{ast, events, galleys, images, layouts, register_fonts, styles, CustomEvents};
 use egui::{Context, FontDefinitions, Ui, Vec2};
 
 pub struct Editor {
@@ -27,6 +27,9 @@ pub struct Editor {
     pub styles: Vec<StyleInfo>,
     pub layouts: Layouts,
     pub galleys: Galleys,
+
+    // events not supported by egui
+    pub events: Vec<CustomEvents>,
 }
 
 impl Default for Editor {
@@ -45,6 +48,7 @@ impl Default for Editor {
             styles: Default::default(),
             layouts: Default::default(),
             galleys: Default::default(),
+            events: Default::default(),
         }
     }
 }

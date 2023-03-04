@@ -1,8 +1,39 @@
 #if os(iOS)
 import UIKit
 import MetalKit
+import Bridge
 
-public class iOSMTK: MTKView, UITextInput, UITextInputTokenizer {
+public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer {
+    
+    var editorHandle: UnsafeMutableRawPointer?
+    
+    override init(frame frameRect: CGRect, device: MTLDevice?) {
+        super.init(frame: frameRect, device: device)
+
+        let metalLayer = UnsafeMutableRawPointer(Unmanaged.passRetained(self.layer).toOpaque())
+        self.editorHandle = init_editor(metalLayer, "# hello world", false) // todo
+        
+        self.isPaused = true
+        self.enableSetNeedsDisplay = true
+        self.delegate = self
+    }
+    
+    public func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+        resize_editor(editorHandle, Float(size.width), Float(size.height), Float(self.contentScaleFactor))
+        self.setNeedsDisplay(self.frame)
+    }
+    
+    public func draw(in view: MTKView) {
+//        dark_mode(editorHandle, (view as! CustomMTK).isDarkMode())
+        set_scale(editorHandle, Float(self.contentScaleFactor))
+        draw_editor(editorHandle)
+    }
+    
+    public func insertText(_ text: String) {
+        insert_text(editorHandle, text)
+        self.setNeedsDisplay(self.frame)
+    }
+    
     public func rangeEnclosingPosition(_ position: UITextPosition, with granularity: UITextGranularity, inDirection direction: UITextDirection) -> UITextRange? {
         nil
     }
@@ -114,10 +145,6 @@ public class iOSMTK: MTKView, UITextInput, UITextInputTokenizer {
     
     public var hasText: Bool = false
     
-    public func insertText(_ text: String) {
-        print(text)
-    }
-    
     public func deleteBackward() {
         print("back")
     }
@@ -125,12 +152,6 @@ public class iOSMTK: MTKView, UITextInput, UITextInputTokenizer {
     public override var canBecomeFirstResponder: Bool {
         print("was asked")
         return true
-    }
-    
-    override init(frame frameRect: CGRect, device: MTLDevice?) {
-        super.init(frame: frameRect, device: device)
-        self.isPaused = true
-        self.enableSetNeedsDisplay = true
     }
     
     required init(coder: NSCoder) {
