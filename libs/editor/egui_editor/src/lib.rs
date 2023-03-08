@@ -25,8 +25,36 @@ pub mod unicode_segs;
 #[cfg(target_vendor = "apple")]
 pub mod apple;
 
+/// https://developer.apple.com/documentation/uikit/uitextrange
+#[repr(C)]
+pub struct UITextRange {
+    /// used to represent a non-existent state of this struct
+    nil: bool,
+    start: usize, // todo: what type of indexes (it's up to us)?
+    end: usize,
+}
+
 pub enum CustomEvents {
-    InsertText(String),
+    /// https://developer.apple.com/documentation/uikit/uitextinput/1614558-replace
+    ReplaceText(String, UITextRange),
+
+    /// https://developer.apple.com/documentation/uikit/uitextinput/1614541-selectedtextrange
+    SetSelected(UITextRange),
+
+    /// https://developer.apple.com/documentation/uikit/uitextinput/1614489-markedtextrange
+    ///
+    /// The difference between marked and selected text is as follows:
+    ///
+    /// if you open up a note, and press and hold on some word you'll select that text, you'll get
+    /// two draggable touch targets to modify your selection
+    ///
+    /// While you're typing, say you're trying to type the word "test" and instead you type the
+    /// characters "trst", the auto correct system will (probably) mark this word and (probably)
+    /// replace that word. Marked regions have no touch targets.
+    SetMarked(String, UITextRange),
+
+    /// https://developer.apple.com/documentation/uikit/uitextinput/1614512-unmarktext
+    UnmarkText,
 }
 
 #[repr(C)]

@@ -47,33 +47,33 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
     
     public var selectedTextRange: UITextRange? {
         set {
-            print("\(#function)")
+            print("set \(#function)")
         }
         
         get {
-            print("\(#function)")
+            print("get \(#function)")
             return nil
         }
     }
     
     public var markedTextRange: UITextRange? {
         set {
-            print("\(#function)")
+            print("set \(#function)")
         }
         
         get {
-            print("\(#function)")
+            print("get \(#function)")
             return nil
         }
     }
     
     public var markedTextStyle: [NSAttributedString.Key : Any]? {
         set {
-            print("\(#function)")
+            print("set \(#function)")
         }
         
         get {
-            print("\(#function)")
+            print("get \(#function)")
             return nil
         }
     }
@@ -123,11 +123,11 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
     
     public var inputDelegate: UITextInputDelegate? {
         set {
-            print("\(#function)")
+            print("set \(#function)")
         }
         
         get {
-            print("\(#function)")
+            print("get \(#function)")
             return nil
         }
     }
@@ -187,12 +187,12 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
     }
     
     public var hasText: Bool {
-        print("\(#function)")
-        return false
+        has_text(editorHandle)
     }
     
     public func deleteBackward() {
-        print("\(#function)")
+        backspace(editorHandle)
+        self.setNeedsDisplay(self.frame)
     }
     
     public func rangeEnclosingPosition(_ position: UITextPosition, with granularity: UITextGranularity, inDirection direction: UITextDirection) -> UITextRange? {
