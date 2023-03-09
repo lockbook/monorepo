@@ -27,19 +27,25 @@ pub mod apple;
 
 /// https://developer.apple.com/documentation/uikit/uitextrange
 #[repr(C)]
-pub struct UITextRange {
+pub struct CTextRange {
     /// used to represent a non-existent state of this struct
     nil: bool,
-    start: usize, // todo: what type of indexes (it's up to us)?
-    end: usize,
+    start: CTextPosition,
+    end: CTextPosition,
+}
+
+/// todo: what type of indexes (it's up to us)?
+#[repr(C)]
+pub struct CTextPosition {
+    pos: usize, // probably going to represent a grapheme index
 }
 
 pub enum CustomEvents {
     /// https://developer.apple.com/documentation/uikit/uitextinput/1614558-replace
-    ReplaceText(String, UITextRange),
+    ReplaceText(String, CTextRange),
 
     /// https://developer.apple.com/documentation/uikit/uitextinput/1614541-selectedtextrange
-    SetSelected(UITextRange),
+    SetSelected(CTextRange),
 
     /// https://developer.apple.com/documentation/uikit/uitextinput/1614489-markedtextrange
     ///
@@ -51,7 +57,7 @@ pub enum CustomEvents {
     /// While you're typing, say you're trying to type the word "test" and instead you type the
     /// characters "trst", the auto correct system will (probably) mark this word and (probably)
     /// replace that word. Marked regions have no touch targets.
-    SetMarked(String, UITextRange),
+    SetMarked(String, CTextRange),
 
     /// https://developer.apple.com/documentation/uikit/uitextinput/1614512-unmarktext
     UnmarkText,

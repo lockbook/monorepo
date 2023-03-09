@@ -29,20 +29,23 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
     }
     
     public func insertText(_ text: String) {
-        print("\(#function)")
         insert_text(editorHandle, text)
         self.setNeedsDisplay(self.frame)
     }
     
     public func text(in range: UITextRange) -> String? {
-        print("\(#function)")
-        return nil
+        let range = range as! LBTextRange
+        let result = text_in_range(editorHandle, range.c)
+        let str = String(cString: result!)
+        free_text(UnsafeMutablePointer(mutating: result))
+        return str
     }
     
     
     public func replace(_ range: UITextRange, withText text: String) {
-        print("\(#function)")
-        
+        let range = range as! LBTextRange
+        replace_text(editorHandle, range.c, text)
+        self.setNeedsDisplay(self.frame)
     }
     
     public var selectedTextRange: UITextRange? {
@@ -87,13 +90,11 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
     }
     
     public var beginningOfDocument: UITextPosition {
-        print("\(#function)")
-        return UITextPosition.init()
+        LBTextPos(c: beginning_of_document(editorHandle))
     }
     
     public var endOfDocument: UITextPosition {
-        print("\(#function)")
-        return UITextPosition.init()
+        LBTextPos(c: end_of_document(editorHandle))
     }
     
     public func textRange(from fromPosition: UITextPosition, to toPosition: UITextPosition) -> UITextRange? {
@@ -227,4 +228,19 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
     
 }
 
+class LBTextRange: UITextRange {
+    let c: CTextRange
+    
+    init(c: CTextRange) {
+        self.c = c
+    }
+}
+
+class LBTextPos: UITextPosition {
+    let c: CTextPosition
+    
+    init(c: CTextPosition) {
+        self.c = c
+    }
+}
 #endif
