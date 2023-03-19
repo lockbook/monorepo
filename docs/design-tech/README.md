@@ -19,9 +19,9 @@ Features:
 - Edit & Sync Files
     - Apps allow users to create, edit, organize, and delete files. Files are organized into folders, forming a file tree.
     - Apps store files on users' devices for offline access and editing.
-    - When a device has internet access, it can sync changes to the server and pull changes that have been synced from other devices.
+    - When a device has internet access, it can push changes to the server and pull changes that have been pushed from other devices.
     - Apps make a best effort to reconcile concurrent edits to the same files on multiple devices.
-    - Documents are formatted using Markdown for seamless compatibility with the CLI.
+    - Documents are formatted using Markdown for seamless compatibility with plaintext editors.
     - Apps other than the CLI also support drawings in a custom, cross-platform file format.
 - Import & Export To Device
     - Users can import files from their device's filesystem into Lockbook.
