@@ -1,0 +1,9 @@
+# Technical Design: Registration & Login
+
+Users' identities are represented by cryptographic key pairs. For public-key cryptography, Lockbook uses [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) via the pure-Rust library [libsecp256k1](https://docs.rs/libsecp256k1/latest/libsecp256k1/).
+
+All API calls are signed with users' private key. The server verifies the signature, including making sure the timestamp of the signature is not too old or too in the future (slightly future signature timestamps can occur due to clock skew). This is the principle means of authentication.
+
+To register, clients send the server a `(username, public key)` pair. Both values must be unique. The server saves this pair and serves it freely, so that other users wishing to share files with this user can look up the public key of any user by their username. Note that this creates an attack vector where, if the server is compromised, the server can respond with an arbitrary public key for any username and trick clients into encrypting files for the attacker. A feature to allow decentralized `(username, public key)` pair verification (e.g. in-person via QR code or NFC) is planned.
+
+Users' private keys do not leave their devices except to sign into other devices, which is always initiated by the user. Clients allow the user to display a QR code or string which represents the user's private key. The user can scan the QR code or enter the string on another device to put the private key on that device, effectively logging them in. Lockbook cannot recover lost private keys, so users are advised to backup their private key to at least one additional device upon registration. A feature to allow users to display their private key as a BIP39 12-word seed (for paper backups or memorization) is planned.

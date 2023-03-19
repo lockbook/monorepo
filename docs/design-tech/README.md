@@ -47,6 +47,7 @@ Lockbook engineers collaborate in our [Discord channel](https://discord.gg/kWgyh
 
 ## Further Reading
 See these additional resources for a deeper look at our engineering challenges and solutions:
+- [Register & Login](./register_and_login.md)
 - [Data Model](./data_model.md)
 - [Sync](./sync.md)
 - [Sharing](./sharing.md)
