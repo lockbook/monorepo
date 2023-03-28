@@ -1,8 +1,9 @@
 use crate::appearance::Appearance;
+use crate::ast::Ast;
 use crate::buffer::{Buffer, Modification, SubBuffer, SubModification};
 use crate::cursor::Cursor;
 use crate::debug::DebugInfo;
-use crate::element::ItemType;
+use crate::element::{Element, ItemType};
 use crate::galleys::Galleys;
 use crate::layouts::{Annotation, Layouts};
 use crate::offset_types::DocCharOffset;
@@ -11,25 +12,31 @@ use egui::{Event, Key, PointerButton, Pos2, Vec2};
 use std::cmp::Ordering;
 use std::time::Instant;
 
-/// processes `events` and returns a boolean representing whether text was updated and optionally new contents for clipboard
+/// processes `events` and returns a boolean representing whether text was updated, new contents for clipboard
+/// (optional), and a link that was opened (optional)
+#[allow(clippy::too_many_arguments)]
 pub fn process(
-    events: &[Event], layouts: &Layouts, galleys: &Galleys, appearance: &Appearance, ui_size: Vec2,
-    buffer: &mut Buffer, debug: &mut DebugInfo,
-) -> (bool, Option<String>) {
+    events: &[Event], ast: &Ast, layouts: &Layouts, galleys: &Galleys, appearance: &Appearance,
+    ui_size: Vec2, buffer: &mut Buffer, debug: &mut DebugInfo,
+) -> (bool, Option<String>, Option<String>) {
     let (mut text_updated, modification) =
-        calc_modification(events, layouts, galleys, appearance, buffer, debug, ui_size);
+        calc_modification(events, ast, layouts, galleys, appearance, buffer, debug, ui_size);
     let mut to_clipboard = None;
+    let mut opened_url = None;
     if !modification.is_empty() {
-        let (text_updated_apply, to_clipboard_apply) = buffer.apply(modification, debug);
+        let (text_updated_apply, to_clipboard_apply, opened_url_apply) =
+            buffer.apply(modification, debug);
         text_updated |= text_updated_apply;
-        to_clipboard = to_clipboard_apply;
+        to_clipboard = to_clipboard_apply.or(to_clipboard);
+        opened_url = opened_url_apply.or(opened_url);
     }
-    (text_updated, to_clipboard)
+    (text_updated, to_clipboard, opened_url)
 }
 
 // note: buffer and debug are mut because undo modifies it directly; todo: factor to make mutating subset of code obvious
+#[allow(clippy::too_many_arguments)]
 fn calc_modification(
-    events: &[Event], layouts: &Layouts, galleys: &Galleys, appearance: &Appearance,
+    events: &[Event], ast: &Ast, layouts: &Layouts, galleys: &Galleys, appearance: &Appearance,
     buffer: &mut Buffer, debug: &mut DebugInfo, ui_size: Vec2,
 ) -> (bool, Modification) {
     let mut text_updated = false;
@@ -69,6 +76,18 @@ fn calc_modification(
                     cursor.advance_char(false, &buffer.current.segs, galleys);
                 }
             }
+            Event::Key { key: Key::End, pressed: true, .. } => {
+                cursor.x_target = None;
+                let (galley_idx, cur_cursor) =
+                    galleys.galley_and_cursor_by_char_offset(cursor.pos, &buffer.current.segs);
+                let galley = &galleys[galley_idx];
+                let new_cursor = galley.galley.cursor_end_of_row(&cur_cursor);
+                cursor.pos = galleys.char_offset_by_galley_and_cursor(
+                    galley_idx,
+                    &new_cursor,
+                    &buffer.current.segs,
+                );
+            }
             Event::Key { key: Key::ArrowLeft, pressed: true, modifiers } => {
                 cursor.x_target = None;
 
@@ -92,6 +111,18 @@ fn calc_modification(
                 } else {
                     cursor.advance_char(true, &buffer.current.segs, galleys);
                 }
+            }
+            Event::Key { key: Key::Home, pressed: true, .. } => {
+                cursor.x_target = None;
+                let (galley_idx, cur_cursor) =
+                    galleys.galley_and_cursor_by_char_offset(cursor.pos, &buffer.current.segs);
+                let galley = &galleys[galley_idx];
+                let new_cursor = galley.galley.cursor_begin_of_row(&cur_cursor);
+                cursor.pos = galleys.char_offset_by_galley_and_cursor(
+                    galley_idx,
+                    &new_cursor,
+                    &buffer.current.segs,
+                );
             }
             Event::Key { key: Key::ArrowDown, pressed: true, modifiers } => {
                 if modifiers.shift {
@@ -242,25 +273,19 @@ fn calc_modification(
                     }
                 } else {
                     if modifiers.command {
-                        // select line
+                        // select line start to current position
                         let (galley_idx, cur_cursor) = galleys
                             .galley_and_cursor_by_char_offset(cursor.pos, &buffer.current.segs);
                         let galley = &galleys[galley_idx];
                         let begin_of_row_cursor = galley.galley.cursor_begin_of_row(&cur_cursor);
-                        let end_of_row_cursor = galley.galley.cursor_end_of_row(&cur_cursor);
                         let begin_of_row_pos = galleys.char_offset_by_galley_and_cursor(
                             galley_idx,
                             &begin_of_row_cursor,
                             &buffer.current.segs,
                         );
-                        let end_of_row_pos = galleys.char_offset_by_galley_and_cursor(
-                            galley_idx,
-                            &end_of_row_cursor,
-                            &buffer.current.segs,
-                        );
 
                         modifications.push(SubModification::Cursor {
-                            cursor: (begin_of_row_pos, end_of_row_pos).into(),
+                            cursor: (begin_of_row_pos, cursor.pos).into(),
                         })
                     } else if modifiers.alt {
                         // select word
@@ -662,7 +687,32 @@ fn calc_modification(
                         }
                         checkbox_click
                     };
-                    if !checkbox_click {
+
+                    // process link clicks
+                    let link_click = !checkbox_click && modifiers.command && {
+                        let mut link_click = false;
+                        if let Some(click_char_offset) =
+                            pos_to_char_offset(*pos, galleys, &buffer.current.segs)
+                        {
+                            let click_byte_offset =
+                                buffer.current.segs.char_offset_to_byte(click_char_offset);
+                            for ast_node in &ast.nodes {
+                                if let Element::Link(_, url, _) = &ast_node.element {
+                                    if ast_node.range.contains(&click_byte_offset) {
+                                        modifications.push(SubModification::OpenedUrl {
+                                            url: url.to_string(),
+                                        });
+                                        link_click = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        link_click
+                    };
+
+                    // process other clicks
+                    if !checkbox_click && !link_click {
                         // record instant for double/triple click
                         cursor.process_click_instant(Instant::now());
 
@@ -681,7 +731,11 @@ fn calc_modification(
                         // any click: begin drag; update cursor
                         cursor.set_click_and_drag_origin();
                         if triple_click {
-                            cursor.pos = pos_to_char_offset(*pos, galleys, &buffer.current.segs);
+                            if let Some(click_offset) =
+                                pos_to_char_offset(*pos, galleys, &buffer.current.segs)
+                            {
+                                cursor.pos = click_offset;
+                            }
 
                             let (galley_idx, cur_cursor) = galleys
                                 .galley_and_cursor_by_char_offset(cursor.pos, &buffer.current.segs);
@@ -702,7 +756,11 @@ fn calc_modification(
                                 &buffer.current.segs,
                             );
                         } else if double_click {
-                            cursor.pos = pos_to_char_offset(*pos, galleys, &buffer.current.segs);
+                            if let Some(click_offset) =
+                                pos_to_char_offset(*pos, galleys, &buffer.current.segs)
+                            {
+                                cursor.pos = click_offset;
+                            }
 
                             cursor.advance_word(
                                 false,
@@ -721,8 +779,10 @@ fn calc_modification(
 
                             cursor.selection_origin = Some(begin_of_word_pos);
                             cursor.pos = end_of_word_pos;
-                        } else {
-                            cursor.pos = pos_to_char_offset(*pos, galleys, &buffer.current.segs);
+                        } else if let Some(click_offset) =
+                            pos_to_char_offset(*pos, galleys, &buffer.current.segs)
+                        {
+                            cursor.pos = click_offset;
                         }
                     }
                 }
@@ -734,7 +794,11 @@ fn calc_modification(
                 {
                     // drag: begin selection; update cursor
                     cursor.set_selection_origin();
-                    cursor.pos = pos_to_char_offset(*pos, galleys, &buffer.current.segs);
+                    if let Some(click_offset) =
+                        pos_to_char_offset(*pos, galleys, &buffer.current.segs)
+                    {
+                        cursor.pos = click_offset;
+                    }
                 }
             }
             Event::PointerButton { button: PointerButton::Primary, pressed: false, .. } => {
@@ -756,30 +820,35 @@ fn calc_modification(
     (text_updated, modifications)
 }
 
-fn pos_to_char_offset(pos: Pos2, galleys: &Galleys, segs: &UnicodeSegs) -> DocCharOffset {
+pub fn pos_to_char_offset(
+    pos: Pos2, galleys: &Galleys, segs: &UnicodeSegs,
+) -> Option<DocCharOffset> {
     if !galleys.is_empty() {
         if pos.y < galleys[0].galley_location.min.y {
             // click position is above first galley
-            DocCharOffset(0)
+            Some(DocCharOffset(0))
         } else if pos.y >= galleys[galleys.len() - 1].galley_location.max.y {
             // click position is below last galley
-            segs.last_cursor_position()
+            Some(segs.last_cursor_position())
         } else {
-            let mut result = 0.into();
+            let mut result = None;
             for galley_idx in 0..galleys.len() {
                 let galley = &galleys[galley_idx];
                 if galley.galley_location.contains(pos) {
                     // click position is in a galley
                     let relative_pos = pos - galley.text_location;
                     let new_cursor = galley.galley.cursor_from_pos(relative_pos);
-                    result =
-                        galleys.char_offset_by_galley_and_cursor(galley_idx, &new_cursor, segs);
+                    result = Some(galleys.char_offset_by_galley_and_cursor(
+                        galley_idx,
+                        &new_cursor,
+                        segs,
+                    ));
                 }
             }
             result
         }
     } else {
-        0.into()
+        None
     }
 }
 

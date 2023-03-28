@@ -1,7 +1,5 @@
-use crate::{CoreError, CoreResult, CoreState, Requester, UnexpectedError};
+use crate::{CoreError, CoreState, LbResult, Requester, UnexpectedError};
 use crossbeam::channel::{self, Receiver, RecvTimeoutError, Sender};
-use fuzzy_matcher::skim::SkimMatcherV2;
-use fuzzy_matcher::FuzzyMatcher;
 use lockbook_shared::file_like::FileLike;
 use lockbook_shared::filename::DocumentType;
 use lockbook_shared::tree_like::TreeLike;
@@ -21,11 +19,12 @@ const MAX_CONTENT_MATCH_LENGTH: usize = 400;
 const IDEAL_CONTENT_MATCH_LENGTH: usize = 150;
 const CONTENT_MATCH_PADDING: usize = 8;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Serialize, Debug, Eq, PartialEq)]
 pub struct SearchResultItem {
     pub id: Uuid,
     pub path: String,
-    pub score: i64,
+    pub score: isize,
+    pub matched_indices: Vec<usize>,
 }
 
 impl Ord for SearchResultItem {
@@ -45,7 +44,7 @@ impl PartialOrd for SearchResultItem {
 }
 
 impl<Client: Requester> CoreState<Client> {
-    pub(crate) fn search_file_paths(&mut self, input: &str) -> CoreResult<Vec<SearchResultItem>> {
+    pub(crate) fn search_file_paths(&mut self, input: &str) -> LbResult<Vec<SearchResultItem>> {
         if input.is_empty() {
             return Ok(Vec::new());
         }
@@ -60,7 +59,6 @@ impl<Client: Requester> CoreState<Client> {
             .data()
             .ok_or(CoreError::AccountNonexistent)?;
         let mut results = Vec::new();
-        let matcher = SkimMatcherV2::default();
 
         for id in tree.owned_ids() {
             if !tree.calculate_deleted(&id)? && !tree.in_pending_share(&id)? {
@@ -69,8 +67,16 @@ impl<Client: Requester> CoreState<Client> {
                 if file.is_document() {
                     let path = tree.id_to_path(&id, account)?;
 
-                    if let Some(score) = matcher.fuzzy_match(&path, input) {
-                        results.push(SearchResultItem { id, path, score });
+                    if let Some(m) = FuzzySearch::new(input, &path)
+                        .case_insensitive()
+                        .best_match()
+                    {
+                        results.push(SearchResultItem {
+                            id,
+                            path,
+                            score: m.score(),
+                            matched_indices: m.matched_indices().cloned().collect(),
+                        });
                     }
                 }
             }
@@ -81,7 +87,7 @@ impl<Client: Requester> CoreState<Client> {
         Ok(results)
     }
 
-    pub(crate) fn start_search(&mut self) -> CoreResult<StartSearchInfo> {
+    pub(crate) fn start_search(&mut self) -> LbResult<StartSearchInfo> {
         let mut tree = (&self.db.base_metadata)
             .to_staged(&self.db.local_metadata)
             .to_lazy();
@@ -336,12 +342,12 @@ impl<Client: Requester> CoreState<Client> {
 
         let first_match = new_indices.first().ok_or_else(|| {
             warn!("A fuzzy match happened but there are no matched indices.");
-            UnexpectedError("No matched indices.".to_string())
+            UnexpectedError::new("No matched indices.".to_string())
         })?;
 
         let last_match = new_indices.last().ok_or_else(|| {
             warn!("A fuzzy match happened but there are no matched indices.");
-            UnexpectedError("No matched indices.".to_string())
+            UnexpectedError::new("No matched indices.".to_string())
         })?;
 
         if *last_match < IDEAL_CONTENT_MATCH_LENGTH {

@@ -2,9 +2,8 @@ use crate::exhaustive_sync::experiment::ThreadID;
 use crate::exhaustive_sync::trial::Action::*;
 use crate::exhaustive_sync::trial::Status::{Failed, Ready, Running, Succeeded};
 use crate::exhaustive_sync::utils::{find_by_name, random_filename, random_utf8};
-use lockbook_core::model::errors::MoveFileError;
 use lockbook_core::service::api_service::no_network::{CoreIP, InProcess};
-use lockbook_core::Error::UiError;
+use lockbook_core::CoreError;
 use lockbook_server_lib::config::AdminConfig;
 use lockbook_shared::file::ShareMode;
 use lockbook_shared::file_metadata::FileType::{Document, Folder, Link};
@@ -171,13 +170,14 @@ impl Trial {
 
                     let move_file_result = db.move_file(non_folder, dest);
                     match move_file_result {
-                        Ok(())
-                        | Err(UiError(MoveFileError::LinkInSharedFolder))
-                        | Err(UiError(MoveFileError::FolderMovedIntoItself)) => {}
-                        Err(err) => {
-                            self.status = Failed(format!("{:#?}", err));
-                            break 'steps;
-                        }
+                        Ok(()) => {}
+                        Err(err) => match err.kind {
+                            CoreError::LinkInSharedFolder | CoreError::FolderMovedIntoSelf => {}
+                            _ => {
+                                self.status = Failed(format!("{:#?}", err));
+                                break 'steps;
+                            }
+                        },
                     }
                 }
                 DeleteFile { user_index, device_index, name } => {
@@ -250,16 +250,18 @@ impl Trial {
                             }
 
                             for compare_device_index in 0..self.target_devices_by_user[user_index] {
-                                let compare_device =
-                                    &self.devices_by_user[user_index][compare_device_index];
-                                assert_dbs_equal(device, compare_device);
-                                if !dbs_equal(device, compare_device) {
-                                    self.status = Failed(format!(
-                                        "db {} is not equal to {} after a sync.",
-                                        device.get_config().unwrap().writeable_path,
-                                        compare_device.get_config().unwrap().writeable_path,
-                                    ));
-                                    break 'steps;
+                                if compare_device_index != device_index {
+                                    let compare_device =
+                                        &self.devices_by_user[user_index][compare_device_index];
+                                    assert_dbs_equal(device, compare_device);
+                                    if !dbs_equal(device, compare_device) {
+                                        self.status = Failed(format!(
+                                            "db {} is not equal to {} after a sync.",
+                                            device.get_config().unwrap().writeable_path,
+                                            compare_device.get_config().unwrap().writeable_path,
+                                        ));
+                                        break 'steps;
+                                    }
                                 }
                             }
                         }

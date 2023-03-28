@@ -46,6 +46,8 @@ struct BookView: View {
                 return AlertToast(type: .regular, title: "File moved")
             case .createFolder:
                 return AlertToast(type: .regular, title: "Folder created")
+            case .importFiles:
+                return AlertToast(type: .regular, title: "Imported successfully")
             }
         } else {
             return AlertToast(type: .regular, title: "ERROR")
@@ -55,23 +57,23 @@ struct BookView: View {
     #if os(iOS)
     var iOS: some View {
         NavigationView {
-            FileListView(currentFolder: currentFolder, account: account)
-                    .toolbar {
-                        ToolbarItemGroup {
-                            NavigationLink(
-                                destination: PendingSharesView()) {
-                                    Image(systemName: "shared.with.you").foregroundColor(.blue)
-                                }
-                            
-                            NavigationLink(
-                                destination: SettingsView().equatable(), isActive: $onboarding.theyChoseToBackup) {
-                                    Image(systemName: "gearshape.fill").foregroundColor(.blue)
-                                        .padding(.horizontal, 10)
-                                    }
-                        }
+            FileListView()
+                .toolbar {
+                    ToolbarItemGroup {
+                        NavigationLink(
+                            destination: PendingSharesView()) {
+                                Image(systemName: "shared.with.you").foregroundColor(.blue)
+                            }
+                        
+                        NavigationLink(
+                            destination: SettingsView().equatable(), isActive: $onboarding.theyChoseToBackup) {
+                                Image(systemName: "gearshape.fill").foregroundColor(.blue)
+                                    .padding(.horizontal, 10)
+                            }
                     }
+                }
         }
-                .navigationViewStyle(.stack)
+            .navigationViewStyle(.stack)
     }
 
     @ViewBuilder

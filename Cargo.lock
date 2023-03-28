@@ -102,9 +102,8 @@ checksum = "aae1277d39aeec15cb388266ecc24b11c80469deae6067e17a1a7aa9e5c1f234"
 
 [[package]]
 name = "admin"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
- "backtrace",
  "dialoguer",
  "lockbook-core",
  "structopt",
@@ -963,7 +962,6 @@ dependencies = [
 name = "core_external_interface"
 version = "0.1.0"
 dependencies = [
- "backtrace",
  "basic-human-duration",
  "chrono",
  "crossbeam",
@@ -973,6 +971,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
+ "strum_macros",
  "tracing",
 ]
 
@@ -1309,9 +1308,9 @@ checksum = "23d8666cb01533c39dde32bcbab8e227b4ed6679b2c925eba05feabea39508fb"
 
 [[package]]
 name = "db-rs"
-version = "0.1.16"
+version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e7f7674d001d89d9116bf3664fde5809f24ede5deee558dcbc543f79fa27640"
+checksum = "e38fcdb042edb86b5cea9faa9d6cbc15ecef5c4d9b84b91587d015a0eba9954c"
 dependencies = [
  "bincode",
  "serde",
@@ -1319,9 +1318,9 @@ dependencies = [
 
 [[package]]
 name = "db-rs-derive"
-version = "0.1.16"
+version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2920803c011b4a6036738ee8d87f9ac589687d7f1e6aeab70feb533f912df74"
+checksum = "ac307c89ecd5214ef13c5581a1ab0885c7f92cc145a26d06570793b121b2a0bb"
 dependencies = [
  "db-rs",
  "quote",
@@ -1559,7 +1558,7 @@ dependencies = [
 
 [[package]]
 name = "egui_editor"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "eframe",
  "egui",
@@ -3058,7 +3057,7 @@ dependencies = [
 
 [[package]]
 name = "lockbook-cli"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "atty",
  "clap 4.1.4",
@@ -3068,9 +3067,8 @@ dependencies = [
 
 [[package]]
 name = "lockbook-core"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
- "backtrace",
  "base64",
  "basic-human-duration",
  "bincode",
@@ -3080,7 +3078,6 @@ dependencies = [
  "db-rs",
  "db-rs-derive",
  "diffy",
- "fuzzy-matcher",
  "hmdb",
  "image",
  "indicatif",
@@ -3095,8 +3092,6 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "strum",
- "strum_macros",
  "sublime_fuzzy",
  "tempfile",
  "test_utils",
@@ -3110,7 +3105,7 @@ dependencies = [
 
 [[package]]
 name = "lockbook-dev"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "dotenv",
  "reqwest",
@@ -3121,7 +3116,7 @@ dependencies = [
 
 [[package]]
 name = "lockbook-egui"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "dark-light",
  "eframe",
@@ -3137,7 +3132,7 @@ dependencies = [
 
 [[package]]
 name = "lockbook-server"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "async-stripe",
  "base64",
@@ -3174,7 +3169,7 @@ dependencies = [
 
 [[package]]
 name = "lockbook-shared"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "aead",
  "aes-gcm",
@@ -4374,7 +4369,7 @@ checksum = "a3f87b73ce11b1619a3c6332f45341e0047173771e8b8b73f87bfeefb7b56244"
 
 [[package]]
 name = "releaser"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "fs_extra",
  "gh_release",
@@ -5182,7 +5177,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "bincode",
  "chrono",
@@ -6474,7 +6469,7 @@ dependencies = [
 
 [[package]]
 name = "winstaller"
-version = "0.6.0"
+version = "0.7.1"
 dependencies = [
  "eframe",
  "egui_extras",

@@ -1,13 +1,58 @@
 import Foundation
+import SwiftUI
 import SwiftLockbookCore
 
 class FileService: ObservableObject {
     let core: LockbookApi
 
     @Published var root: File? = nil
-    @Published var files: [File] = []
+    @Published var idsAndFiles: [UUID:File] = [:]
+    var files: [File] {
+        get {
+            Array(idsAndFiles.values)
+        }
+    }
     var successfulAction: FileAction? = nil
-        
+
+    // File Service keeps track of the parent being displayed on iOS. Since this functionality is not used for macOS, it is conditionally compiled.
+#if os(iOS)
+    @Published var path: [File] = []
+    var parent: File? {
+        get {
+            path.last
+        }
+    }
+
+    func childrenOfParent() -> [File] {
+        return childrenOf(path.last)
+    }
+
+    func upADirectory() {
+        DispatchQueue.main.async {
+            withAnimation {
+                let _ = self.path.removeLast()
+            }
+        }
+    }
+
+    func intoChildDirectory(_ file: File) {
+        DispatchQueue.main.async {
+            withAnimation {
+                self.path.append(file)
+            }
+        }
+    }
+
+    func pathBreadcrumbClicked(_ file: File) {
+        DispatchQueue.main.async {
+            withAnimation {
+                if let firstIndex = self.path.firstIndex(of: file) {
+                    self.path.removeSubrange(firstIndex + 1...self.path.count - 1)
+                }
+            }
+        }
+    }
+#endif
 
     func childrenOf(_ meta: File?) -> [File] {
         var file: File
@@ -101,6 +146,23 @@ class FileService: ObservableObject {
             return false
         }
     }
+    
+    func importFilesSync(sources: [String], destination: UUID) -> Bool {
+        print("importing files")
+        let operation = core.importFiles(sources: sources, destination: destination)
+
+        switch operation {
+        case .success(_):
+            self.successfulAction = .importFiles
+            refresh()
+            DI.status.checkForLocalWork()
+            return true
+        case .failure(let error):
+            DI.errors.handleError(error)
+            return false
+        }
+    }
+
 
     func deleteFile(id: UUID) {
         DispatchQueue.global(qos: .userInitiated).async {
@@ -153,6 +215,22 @@ class FileService: ObservableObject {
         }
     }
 
+    func filesToExpand(pathToRoot: [File], currentFile: File) -> [File] {
+        if(currentFile.isRoot) {
+            return []
+        }
+
+        let parentFile = idsAndFiles[currentFile.parent]!
+
+        var pathToRoot = filesToExpand(pathToRoot: pathToRoot, currentFile: parentFile)
+
+        if(currentFile.fileType == .Folder) {
+            pathToRoot.append(currentFile)
+        }
+
+        return pathToRoot
+    }
+
     func refresh() {
         DispatchQueue.global(qos: .userInteractive).async {
             let allFiles = self.core.listFiles()
@@ -160,11 +238,17 @@ class FileService: ObservableObject {
             DispatchQueue.main.async {
                 switch allFiles {
                 case .success(let files):
-                    self.files = files
+                    self.idsAndFiles = Dictionary(uniqueKeysWithValues: files.map { ($0.id, $0) })
                     self.files.forEach {
                         self.notifyDocumentChanged($0)
                         if self.root == nil && $0.id == $0.parent {
                             self.root = $0
+
+                            #if os(iOS)
+                            if(self.path.isEmpty) {
+                                self.path.append($0)
+                            }
+                            #endif
                         }
                     }
                     self.closeOpenFileIfDeleted()
@@ -195,4 +279,5 @@ public enum FileAction {
     case rename
     case delete
     case createFolder
+    case importFiles
 }

@@ -1,10 +1,11 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
+use std::path::PathBuf;
 
 use serde::Serialize;
 use serde_json::json;
 
-use lockbook_core::{Config, FileType, ShareMode, SupportedImageFormats, Uuid};
+use lockbook_core::{Config, FileType, ImportStatus, ShareMode, SupportedImageFormats, Uuid};
 
 use crate::{get_all_error_variants, json_interface::translate, static_state};
 
@@ -491,19 +492,52 @@ pub unsafe extern "C" fn delete_pending_share(id: *const c_char) -> *const c_cha
 ///
 /// Be sure to call `release_pointer` on the result of this function to free the data.
 #[no_mangle]
-pub unsafe extern "C" fn validate() -> *const c_char {
+pub unsafe extern "C" fn export_file(
+    id: *const c_char, destination: *const c_char,
+) -> *const c_char {
     c_string(match static_state::get() {
-        Ok(core) => translate(
-            // Map any warnings to Strings as well as any errors using Debug impl text.
-            core.validate()
-                .map(|warnings| {
-                    warnings
-                        .into_iter()
-                        .map(|w| w.to_string())
-                        .collect::<Vec<String>>()
-                })
-                .map_err(|err| err.to_string()),
-        ),
+        Ok(core) => translate(core.export_file(
+            uuid_from_ptr(id),
+            PathBuf::from(&str_from_ptr(destination)),
+            true,
+            None,
+        )),
+        e => translate(e.map(|_| ())),
+    })
+}
+
+/// # Safety
+///
+/// Be sure to call `release_pointer` on the result of this function to free the data.
+#[no_mangle]
+pub unsafe extern "C" fn import_files(
+    sources: *const c_char, destination: *const c_char,
+) -> *const c_char {
+    c_string(match static_state::get() {
+        Ok(core) => {
+            let sources = serde_json::from_str::<Vec<String>>(&str_from_ptr(sources))
+                .expect("Could not convert Swift Array into Rust Array!")
+                .into_iter()
+                .map(PathBuf::from)
+                .collect::<Vec<PathBuf>>();
+
+            translate(core.import_files(
+                &sources,
+                uuid_from_ptr(destination),
+                &|_status: ImportStatus| println!("imported one file"),
+            ))
+        }
+        e => translate(e.map(|_| ())),
+    })
+}
+
+/// # Safety
+///
+/// Be sure to call `release_pointer` on the result of this function to free the data.
+#[no_mangle]
+pub unsafe extern "C" fn search_file_paths(input: *const c_char) -> *const c_char {
+    c_string(match static_state::get() {
+        Ok(core) => translate(core.search_file_paths(&str_from_ptr(input))),
         e => translate(e.map(|_| ())),
     })
 }
@@ -525,7 +559,7 @@ mod tests {
             let ffi_val = std::ffi::CStr::from_ptr(super::default_api_location())
                 .to_str()
                 .expect("Could not C String -> Rust str");
-            assert_eq!(crate::DEFAULT_API_LOCATION, ffi_val)
+            assert_eq!(lockbook_core::DEFAULT_API_LOCATION, ffi_val)
         }
     }
 }
