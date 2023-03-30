@@ -49,9 +49,10 @@ pub unsafe extern "C" fn scroll_wheel(obj: *mut c_void, scroll_wheel: f32) {
     obj.raw_input
         .events
         .push(Event::PointerMoved(Pos2::new(250.0, 250.0))); // todo remove?
+    println!("{}", obj.screen.scale_factor);
     obj.raw_input
         .events
-        .push(Event::Scroll(Vec2::new(0.0, scroll_wheel * 2.0)))
+        .push(Event::Scroll(Vec2::new(0.0, scroll_wheel / 1.0)))
 }
 
 /// (macos only)

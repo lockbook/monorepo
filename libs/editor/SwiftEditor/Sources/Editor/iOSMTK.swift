@@ -10,11 +10,19 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
         super.init(frame: frameRect, device: device)
         
         let metalLayer = UnsafeMutableRawPointer(Unmanaged.passRetained(self.layer).toOpaque())
-        self.editorHandle = init_editor(metalLayer, "# hello world", false) // todo
+        self.editorHandle = init_editor(metalLayer, test, false) // todo
         
         self.isPaused = true
         self.enableSetNeedsDisplay = true
         self.delegate = self
+        self.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(didPan(_:))))
+    }
+    
+    @objc private func didPan(_ sender: UIPanGestureRecognizer) {
+        print(sender.translation(in: self).y)
+        print(self.frame)
+        scroll_wheel(editorHandle, Float(sender.translation(in: self).y) / 3)
+        self.setNeedsDisplay(self.frame)
     }
     
     public func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
@@ -34,6 +42,7 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
     }
     
     public func text(in range: UITextRange) -> String? {
+        if range == nil { return nil } // todo: remove this
         let range = range as! LBTextRange
         let result = text_in_range(editorHandle, range.c)
         let str = String(cString: result!)
@@ -216,6 +225,38 @@ public class iOSMTK: MTKView, MTKViewDelegate, UITextInput, UITextInputTokenizer
         return false
     }
     
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let point = Unmanaged.passUnretained(touches.first!).toOpaque()
+        let value = UInt64(UInt(bitPattern: point))
+        let location = touches.first!.location(in: self)
+        touches_began(editorHandle, value, Float(location.x), Float(location.y), Float(touches.first?.force ?? 0))
+        self.setNeedsDisplay(self.frame)
+    }
+    
+    public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let point = Unmanaged.passUnretained(touches.first!).toOpaque()
+        let value = UInt64(UInt(bitPattern: point))
+        let location = touches.first!.location(in: self)
+        touches_moved(editorHandle, value, Float(location.x), Float(location.y), Float(touches.first?.force ?? 0))
+        self.setNeedsDisplay(self.frame)
+    }
+    
+    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let point = Unmanaged.passUnretained(touches.first!).toOpaque()
+        let value = UInt64(UInt(bitPattern: point))
+        let location = touches.first!.location(in: self)
+        touches_ended(editorHandle, value, Float(location.x), Float(location.y), Float(touches.first?.force ?? 0))
+        self.setNeedsDisplay(self.frame)
+    }
+    
+    public override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let point = Unmanaged.passUnretained(touches.first!).toOpaque()
+        let value = UInt64(UInt(bitPattern: point))
+        let location = touches.first!.location(in: self)
+        touches_cancelled(editorHandle, value, Float(location.x), Float(location.y), Float(touches.first?.force ?? 0))
+        self.setNeedsDisplay(self.frame)
+    }
+    
     public override var canBecomeFirstResponder: Bool {
         print("\(#function)")
         print("canBecomeFirstResponder")
@@ -244,3 +285,91 @@ class LBTextPos: UITextPosition {
     }
 }
 #endif
+
+let test = """
+# Lockbook
+
+![Discord](https://img.shields.io/discord/1014184997751619664?label=Discord&style=plastic)
+
+## About
+_The private, polished note-taking platform._
+
+Privacy shouldn't be a compromise. That's why we made Lockbook, a companion for recording thoughts on all your devices. Record, sync, and share your notes with apps engineered to feel like home on every platform. We collect no personal information and encrypt your notes so even _we_ can’t see them. Don’t take our word for it: Lockbook is 100% open-source.
+
+### Polished
+We built Lockbook for everyday use because we use Lockbook everyday. We need a note-taking app that doesn't make trade-offs with respect to speed, stability, efficiency, device integration, or delightfulness. The only way to have that is to put in the effort, including writing native apps for every platform, and we can't wait for you to try them.
+
+### Secure
+Keep your thoughts to yourself. Your notes are encrypted with keys that are generated on your devices and stay on your devices. The only people that can see your notes are you and the users you share them with. No one else, including infrastructure providers, state actors, and Lockbook employees, can see your notes.
+
+### Private
+Know your customer? We sure don't. We don't collect your email, phone number, or name. We don't even need a password. Lockbook is for people with better things to worry about than privacy.
+
+### Honest
+Be the customer, not the product. We make money by selling a note-taking app, not your data.
+
+| Payment Option | Monthly Fee    |
+|----------------|----------------|
+| Monthly        | $2.99 per 30gb |
+
+### Developer Friendly
+We also provide a CLI tool that will fit right into your favorite chain of piped-together unix commands. Search your notes with `fzf`, edit them with `vim`, and schedule backups with `cron`. When scripting doesn't cut it, use our Rust library for a robust programmatic interface with Lockbook.
+
+## Feature Matrix
+
+<details>
+<summary>Legend</summary>
+
++ ✅ Done
++ 🏗 In Progress
++ 📆 Planned
++ ⛔️ Not Planned
+
+</details>
+
+### Account Management
+
+|                    |  [CLI]  |  [Linux]  |  [Android]  |  [Windows]  |  [iOS/iPadOS]  |  [macOS]  |
+|--------------------|:-------:|:---------:|:-----------:|:-----------:|:--------------:|:---------:|
+| New Account        |   ✅     |    ✅     |     ✅      |     ✅       |      ✅        |    ✅     |
+| QR Import          |   ⛔️     |    📆     |     ✅      |     📆       |      ✅        |    📆     |
+| Import Account     |   ✅     |    ✅     |     ✅      |     ✅       |      ✅        |    ✅     |
+| Space Utilized     |   ✅     |    ✅     |     ✅      |     ✅       |      ✅        |    ✅     |
+| Billing            |   ✅     |    ✅     |     ✅      |     📆       |      📆        |    📆     |
+
+### File Operations
+
+|                       |  [CLI]  |  [Linux]  |  [Android]  |  [Windows]  |  [iOS/iPadOS]  |  [macOS]  |
+|-----------------------|:-------:|:---------:|:-----------:|:-----------:|:--------------:|:---------:|
+| Rename                |   ✅     |    ✅     |     ✅      |     ✅       |      ✅        |    ✅     |
+| Move                  |   ✅     |    ✅     |     ✅      |     ✅       |      ✅        |    ✅     |
+| Delete                |   ✅     |    ✅     |     ✅      |     ✅       |      ✅        |    ✅     |
+| Sync                  |   ✅     |    ✅     |     ✅      |     ✅       |      ✅        |    ✅     |
+| Export file to host   |   ✅     |    ✅     |     ✅      |     📆       |      📆        |    📆     |
+| Import file from host |   ✅     |    ✅     |     📆      |     📆       |      📆        |    📆     |
+| Sharing               |   ✅     |    📆     |     📆      |     📆       |      📆        |    📆     |
+
+### Document Types
+
+|                       |  [CLI]  |  [Linux]  |  [Android]  |  [Windows]  |  [iOS/iPadOS]  |  [macOS]  |
+|-----------------------|:-------:|:---------:|:-----------:|:-----------:|:--------------:|:---------:|
+| Text                  |   ✅     |    ✅     |     ✅      |     ✅       |      ✅        |    ✅     |
+| Markdown              |   ✅     |    ✅     |     ✅      |     📆       |      ✅        |    ✅     |
+| Drawings              |   ✅     |    🏗     |     ✅      |     🏗       |      ✅        |    ✅     |
+| Images                |   ✅     |    ✅     |     ✅      |     📆       |      📆        |    📆     |
+| PDFs                  |   📆     |    📆     |     ✅      |     📆       |      📆        |    📆     |
+| Todo lists            |   📆     |    📆     |     📆      |     📆       |      📆        |    📆     |
+| Document Linking      |   📆     |    ✅     |     📆      |     📆       |      📆        |    📆     |
+
+# Further Reading
+
++ [System Architecture](design-tech/system-architecture.md)
++ [Data Model and Procedures](design-tech/data_model.md)
+
+[Cli]: guides/install/cli.md
+[Linux]: guides/install/linux.md
+[Android]: guides/install/android.md
+[Windows]: guides/install/windows.md
+[macOS]: guides/install/macos.md
+[iOS/iPadOS]: guides/install/iOS-iPadOS.md
+"""

@@ -8,7 +8,7 @@ use crate::galleys::Galleys;
 use crate::images::ImageCache;
 use crate::layouts::Layouts;
 use crate::styles::StyleInfo;
-use crate::test_input::TEST_MARKDOWN;
+use crate::test_input::{TEST_MARKDOWN, TEST_MARKDOWN_34};
 use crate::{ast, events, galleys, images, layouts, register_fonts, styles, CustomEvents};
 
 pub struct Editor {
