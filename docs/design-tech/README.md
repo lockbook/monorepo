@@ -48,6 +48,13 @@ Lockbook engineers collaborate in our [Discord channel](https://discord.gg/kWgyh
 ## Further Reading
 See these additional resources for a deeper look at our engineering challenges and solutions:
 - [Register & Login](./register_and_login.md)
+- [Upgrade To Premium](./upgrade_to_premium.md)
+- [Edit & Sync Files](./edit_and_sync_files.md)
+- [Import & Export To Device](./import_and_export_to_device.md)
+- [Search Files](./search_files.md)
+- [Share Files](./share_files.md)
+
+todo: remove
 - [Data Model](./data_model.md)
 - [Sync](./sync.md)
 - [Sharing](./sharing.md)
