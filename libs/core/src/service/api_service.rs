@@ -67,7 +67,7 @@ impl Requester for Network {
             signed_request,
             client_version: client_version.clone(),
         })
-        .map_err(|err| ApiError::Serialize(err.to_string()))?;
+            .map_err(|err| ApiError::Serialize(err.to_string()))?;
         let serialized_response = self
             .client
             .request(T::METHOD, format!("{}{}", account.api_url, T::ROUTE).as_str())
@@ -89,7 +89,6 @@ impl Requester for Network {
 
 #[cfg(feature = "no-network")]
 pub mod no_network {
-
     use crate::service::api_service::ApiError;
     use crate::{call, CoreLib, CoreState};
     use crate::{CoreDb, Requester};
@@ -143,8 +142,10 @@ pub mod no_network {
             ));
             let app_store_client = reqwest::Client::new();
 
+            let mut db_config = db_rs::Config::in_folder(&server_config.index_db.db_location);
+            db_config.no_io = true;
             let index_db = Arc::new(Mutex::new(
-                ServerV4::init(db_rs::Config::in_folder(&server_config.index_db.db_location))
+                ServerV4::init(db_config)
                     .expect("Failed to load index_db"),
             ));
 
