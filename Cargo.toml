@@ -17,3 +17,7 @@ members = [
 	"utils/releaser",
 	"utils/winstaller",
 ]
+
+[profile.release-lto]
+inherits = "release"
+lto = true
