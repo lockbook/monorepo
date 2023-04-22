@@ -1403,6 +1403,14 @@ checksum = "23d8666cb01533c39dde32bcbab8e227b4ed6679b2c925eba05feabea39508fb"
 [[package]]
 name = "db-rs"
 version = "0.1.18"
+dependencies = [
+ "bincode",
+ "serde",
+]
+
+[[package]]
+name = "db-rs"
+version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e38fcdb042edb86b5cea9faa9d6cbc15ecef5c4d9b84b91587d015a0eba9954c"
 dependencies = [
@@ -1413,10 +1421,8 @@ dependencies = [
 [[package]]
 name = "db-rs-derive"
 version = "0.1.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac307c89ecd5214ef13c5581a1ab0885c7f92cc145a26d06570793b121b2a0bb"
 dependencies = [
- "db-rs",
+ "db-rs 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote",
  "syn 1.0.109",
 ]
@@ -3115,7 +3121,7 @@ dependencies = [
  "bincode",
  "criterion",
  "crossbeam",
- "db-rs",
+ "db-rs 0.1.18",
  "db-rs-derive",
  "diffy",
  "image",
@@ -3178,7 +3184,7 @@ dependencies = [
  "base64 0.13.1",
  "bincode",
  "constant_time_eq 0.2.5",
- "db-rs",
+ "db-rs 0.1.18",
  "db-rs-derive",
  "futures",
  "google-androidpublisher3 3.1.0+20220307",
@@ -3215,7 +3221,7 @@ dependencies = [
  "aes-gcm",
  "base64 0.13.1",
  "bincode",
- "db-rs",
+ "db-rs 0.1.18",
  "flate2",
  "hmac 0.11.0",
  "http",
