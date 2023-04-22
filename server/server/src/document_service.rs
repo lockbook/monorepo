@@ -2,22 +2,29 @@ use crate::{ServerError, ServerState};
 
 use lockbook_shared::crypto::EncryptedDocument;
 use lockbook_shared::file_metadata::DocumentHmac;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::path::PathBuf;
 use tokio::fs::{remove_file, File};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use uuid::Uuid;
 
+thread_local! {
+     static STORE: RefCell<HashMap<PathBuf, Vec<u8>>> = Default::default();
+}
+
 pub(crate) async fn insert<T: Debug>(
     state: &ServerState, id: &Uuid, hmac: &DocumentHmac, content: &EncryptedDocument,
 ) -> Result<(), ServerError<T>> {
     let content = bincode::serialize(content)?;
     let path = get_path(state, id, hmac);
-    let mut file = File::create(path.clone()).await?;
-    file.write_all(&content)
-        .await
-        .map_err(|err| internal!("{:?}", err))?;
-    file.flush().await.map_err(|err| internal!("{:?}", err))?;
+    STORE.with(|s| s.borrow_mut().insert(path, content));
+    // let mut file = File::create(path.clone()).await?;
+    // file.write_all(&content)
+    //     .await
+    //     .map_err(|err| internal!("{:?}", err))?;
+    // file.flush().await.map_err(|err| internal!("{:?}", err))?;
     Ok(())
 }
 
@@ -25,15 +32,18 @@ pub(crate) async fn get<T: Debug>(
     state: &ServerState, id: &Uuid, hmac: &DocumentHmac,
 ) -> Result<EncryptedDocument, ServerError<T>> {
     let path = get_path(state, id, hmac);
-    let mut file = File::open(path.clone()).await?;
-    let mut content = vec![];
-    file.read_to_end(&mut content).await?;
+    // let mut file = File::open(path.clone()).await?;
+    // let mut content = vec![];
+    // file.read_to_end(&mut content).await?;
+    let content = STORE.with(|s| s.borrow().get(&path).unwrap().clone());
     let content = bincode::deserialize(&content)?;
     Ok(content)
 }
 
 pub(crate) fn exists(state: &ServerState, id: &Uuid, hmac: &DocumentHmac) -> bool {
-    get_path(state, id, hmac).exists()
+    let path = get_path(state, id, hmac);
+    // path.exists()
+    STORE.with(|s| s.borrow().contains_key(&path))
 }
 
 pub(crate) async fn delete<T: Debug>(
@@ -45,9 +55,10 @@ pub(crate) async fn delete<T: Debug>(
     // efficient for the caller to look at the metadata and make a more informed decision about
     // whether this needs to be called or not. Perhaps an async version should be used if we do keep
     // the check.
-    if path.exists() {
-        remove_file(path).await?;
-    }
+    // if path.exists() {
+        // remove_file(path).await?;
+    // }
+    STORE.with(|s| s.borrow_mut().remove(&path));
     Ok(())
 }
 
