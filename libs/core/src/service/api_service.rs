@@ -67,7 +67,7 @@ impl Requester for Network {
             signed_request,
             client_version: client_version.clone(),
         })
-            .map_err(|err| ApiError::Serialize(err.to_string()))?;
+        .map_err(|err| ApiError::Serialize(err.to_string()))?;
         let serialized_response = self
             .client
             .request(T::METHOD, format!("{}{}", account.api_url, T::ROUTE).as_str())
@@ -144,10 +144,8 @@ pub mod no_network {
 
             let mut db_config = db_rs::Config::in_folder(&server_config.index_db.db_location);
             db_config.no_io = true;
-            let index_db = Arc::new(Mutex::new(
-                ServerV4::init(db_config)
-                    .expect("Failed to load index_db"),
-            ));
+            let index_db =
+                Arc::new(Mutex::new(ServerV4::init(db_config).expect("Failed to load index_db")));
 
             let internals = InProcessInternals {
                 server_state: ServerState {
@@ -233,7 +231,9 @@ pub mod no_network {
 
     impl CoreLib<InProcess> {
         pub fn init_in_process(core_config: &Config, client: InProcess) -> Self {
-            let db = CoreDb::init(db_rs::Config::in_folder(&core_config.writeable_path)).unwrap();
+            let mut config = db_rs::Config::in_folder(&core_config.writeable_path);
+            config.no_io = true;
+            let db = CoreDb::init(config).unwrap();
             let config = core_config.clone();
             let state = CoreState { config, public_key: None, db, client };
             let inner = Arc::new(Mutex::new(state));
