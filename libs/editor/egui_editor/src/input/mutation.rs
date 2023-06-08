@@ -48,6 +48,7 @@ pub fn calc(
             mutation.push(SubMutation::Cursor { cursor });
         }
         Modification::Replace { region, text } => {
+            println!("Modification::Replace {{ {:?}, {:?} }}", region, text);
             mutation.push(SubMutation::Cursor {
                 cursor: region_to_cursor(region, current_cursor, buffer, galleys),
             });
@@ -372,6 +373,11 @@ pub fn region_to_cursor(
             .into(),
         Region::Selection => current_cursor,
         Region::SelectionOrOffset { offset, backwards } => {
+            println!("Region::SelectionOrOffset{{ {:?}, {:?} }}", offset, backwards);
+            println!(
+                "current_cursor.selection().is_none(): {:?}",
+                current_cursor.selection().is_none()
+            );
             if current_cursor.selection().is_none() {
                 let mut cursor = current_cursor;
                 cursor.advance(offset, backwards, buffer, galleys);

@@ -212,9 +212,14 @@ impl SubBuffer {
             // todo: reduce duplication
             match modification {
                 SubMutation::Cursor { cursor: cur } => {
+                    println!(
+                        "SubMutation::Cursor(({:?}, {:?}))",
+                        cur.selection.0 .0, cur.selection.1 .0
+                    );
                     cur_cursor = cur;
                 }
                 SubMutation::Insert { text: text_replacement } => {
+                    println!("SubMutation::Insert({:?})", text_replacement);
                     let replaced_text_range = cur_cursor.selection_or_position();
 
                     Self::modify_subsequent_cursors(

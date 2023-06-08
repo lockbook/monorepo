@@ -29,6 +29,7 @@ pub unsafe extern "C" fn insert_text(obj: *mut c_void, content: *const c_char) {
 /// https://developer.apple.com/documentation/uikit/uikeyinput/1614543-inserttext
 #[no_mangle]
 pub unsafe extern "C" fn backspace(obj: *mut c_void) {
+    println!("backspace()");
     let obj = &mut *(obj as *mut WgpuEditor);
     obj.raw_input.events.push(Event::Key {
         key: Key::Backspace,

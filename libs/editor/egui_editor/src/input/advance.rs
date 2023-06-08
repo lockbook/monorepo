@@ -35,6 +35,7 @@ impl DocCharOffset {
     }
 
     fn advance_by_char(mut self, backwards: bool, segs: &UnicodeSegs) -> Self {
+        println!("advance_by_char({:?})", backwards);
         if !backwards && self < segs.last_cursor_position() {
             self += 1;
         }

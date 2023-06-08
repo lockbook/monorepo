@@ -138,6 +138,7 @@ pub fn calc(
         Event::Key { key, pressed: true, modifiers, .. }
             if matches!(key, Key::Backspace | Key::Delete) =>
         {
+            println!("Event::Key {{ {:?}, {:?}, {:?} }}", key, true, modifiers);
             Some(Modification::Replace {
                 region: Region::SelectionOrOffset {
                     offset: Offset::from(modifiers),
