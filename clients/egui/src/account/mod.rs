@@ -85,6 +85,8 @@ impl AccountScreen {
     }
 
     pub fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        let evts = ctx.input(|inp| inp.raw.clone()).dropped_files;
+        println!("{:?}", evts);
         self.process_updates(ctx, frame);
         self.process_keys(ctx, frame);
 
