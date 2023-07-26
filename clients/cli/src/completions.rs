@@ -11,7 +11,7 @@ use crate::{
     LbCli,
 };
 
-const BASH_COMPLETIONS: &str = "
+const BASH_ADAPTER: &str = "
 _lockbook_complete_()
 {
     _COMP_OUTPUTSTR=\"$( lockbook complete -- \"${COMP_WORDS[*]}\" ${COMP_CWORD} )\"
@@ -23,6 +23,21 @@ _lockbook_complete_()
 
 complete -o nospace -F _lockbook_complete_ lockbook -E
 ";
+
+const ZSH_ADAPTER: &str = "
+#compdef _lockbook lockbook
+
+function _lockbook {
+    _reply_str=\"$( lockbook complete -- \"${words[*]}\" \"$(($CURRENT - 1))\" )\"
+    
+    _reply_arr=(\"${(f)_reply_str}\") 
+
+    compadd -S '' -a _reply_arr 
+
+}";
+
+const FISH_ADAPTER: &str = "
+complete -c lockbook -f --condition \"not __fish_seen_subcommand_from file-command non-file-command\" -a '(lockbook complete (commandline -cp) 2)'";
 
 #[derive(EnumString, AsRefStr)]
 #[strum(serialize_all = "UPPERCASE")]
@@ -36,8 +51,9 @@ pub enum DynValueName {
 
 pub fn generate_completions(shell: Shell) -> Result<(), CliError> {
     match shell {
-        Shell::Bash | Shell::Zsh => print!("{}", BASH_COMPLETIONS),
-        Shell::Fish => todo!(),
+        Shell::Bash => print!("{}", BASH_ADAPTER),
+        Shell::Zsh => print!("{}", ZSH_ADAPTER),
+        Shell::Fish => print!("{}", FISH_ADAPTER),
         _ => todo!(),
     }
 
@@ -46,7 +62,6 @@ pub fn generate_completions(shell: Shell) -> Result<(), CliError> {
 
 pub fn complete(core: &Core, input: String, cursor_pos: i32) -> Result<(), CliError> {
     let splitted = shellwords::split(&input)?;
-
     // manoeuver to switch from declarative to imperative pattern.
     let cli = Command::new("");
     let cli = LbCli::augment_subcommands(cli);
