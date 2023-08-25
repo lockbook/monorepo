@@ -3,7 +3,7 @@ use crate::input::cursor::Cursor;
 use crate::offset_types::{DocByteOffset, DocCharOffset, RangeExt, RelCharOffset};
 use crate::unicode_segs;
 use crate::unicode_segs::UnicodeSegs;
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::iter;
 use std::ops::{Index, Range};
 use std::time::{Duration, Instant};
@@ -29,7 +29,7 @@ pub enum EditorMutation {
 
 #[derive(Clone, Debug)]
 pub enum SubMutation {
-    Cursor { cursor: Cursor },                     // modify the cursor state
+    Cursor { cursor: Cursor, new_cursor: Cursor }, // modify the cursor state
     Insert { text: String, advance_cursor: bool }, // insert text at cursor location
     Delete(RelCharOffset),                         // delete selection or characters before cursor
     DebugToggle,                                   // toggle debug overlay
@@ -61,7 +61,8 @@ pub struct Buffer {
 // todo: lazy af name
 #[derive(Clone, Debug)]
 pub struct SubBuffer {
-    pub cursor: Cursor,
+    /// map from cursor at start of frame to cursor at end of frame
+    pub cursors: HashMap<Cursor, Cursor>,
     pub text: String,
     pub segs: UnicodeSegs,
 }
@@ -190,7 +191,11 @@ impl Buffer {
 
 impl From<&str> for SubBuffer {
     fn from(value: &str) -> Self {
-        Self { text: value.into(), cursor: 0.into(), segs: unicode_segs::calc(value) }
+        Self {
+            text: value.into(),
+            cursors: iter::once((Cursor::default(), Cursor::default())).collect(),
+            segs: unicode_segs::calc(value),
+        }
     }
 }
 
@@ -205,48 +210,50 @@ impl SubBuffer {
         let mut text_updated = false;
         let mut to_clipboard = None;
         let mut opened_url = None;
-
-        let mut cur_cursor = self.cursor;
         mods.reverse();
         while let Some(modification) = mods.pop() {
             // todo: reduce duplication
             match modification {
-                SubMutation::Cursor { cursor: cur } => {
-                    cur_cursor = cur;
+                SubMutation::Cursor { cursor, new_cursor } => {
+                    self.cursors[&cursor] = new_cursor;
                 }
                 SubMutation::Insert { text: text_replacement, advance_cursor } => {
-                    let replaced_text_range = cur_cursor.selection_or_position();
+                    for (cur_cursor, new_cursor) in self.cursors.iter_mut() {
+                        let replaced_text_range = cur_cursor.selection_or_position();
 
-                    Self::modify_subsequent_cursors(
-                        replaced_text_range.clone(),
-                        &text_replacement,
-                        advance_cursor,
-                        &mut mods,
-                        &mut cur_cursor,
-                    );
+                        Self::modify_subsequent_cursors(
+                            replaced_text_range.clone(),
+                            &text_replacement,
+                            advance_cursor,
+                            &mut mods,
+                            new_cursor,
+                        );
 
-                    self.replace_range(replaced_text_range, &text_replacement);
-                    self.segs = unicode_segs::calc(&self.text);
-                    text_updated = true;
+                        self.replace_range(replaced_text_range, &text_replacement);
+                        self.segs = unicode_segs::calc(&self.text);
+                        text_updated = true;
+                    }
                 }
                 SubMutation::Delete(n_chars) => {
-                    let text_replacement = "";
-                    let replaced_text_range = cur_cursor.selection().unwrap_or(Range {
-                        start: cur_cursor.selection.1 - n_chars,
-                        end: cur_cursor.selection.1,
-                    });
+                    for (cur_cursor, new_cursor) in self.cursors.iter_mut() {
+                        let text_replacement = "";
+                        let replaced_text_range = cur_cursor.selection().unwrap_or(Range {
+                            start: cur_cursor.selection.1 - n_chars,
+                            end: cur_cursor.selection.1,
+                        });
 
-                    Self::modify_subsequent_cursors(
-                        replaced_text_range.clone(),
-                        text_replacement,
-                        false,
-                        &mut mods,
-                        &mut cur_cursor,
-                    );
+                        Self::modify_subsequent_cursors(
+                            replaced_text_range.clone(),
+                            text_replacement,
+                            false,
+                            &mut mods,
+                            new_cursor,
+                        );
 
-                    self.replace_range(replaced_text_range, text_replacement);
-                    self.segs = unicode_segs::calc(&self.text);
-                    text_updated = true;
+                        self.replace_range(replaced_text_range, text_replacement);
+                        self.segs = unicode_segs::calc(&self.text);
+                        text_updated = true;
+                    }
                 }
                 SubMutation::DebugToggle => {
                     debug.draw_enabled = !debug.draw_enabled;
@@ -260,7 +267,6 @@ impl SubBuffer {
             }
         }
 
-        self.cursor = cur_cursor;
         (text_updated, to_clipboard, opened_url)
     }
 
@@ -273,8 +279,8 @@ impl SubBuffer {
         for mod_cursor in mods
             .iter_mut()
             .filter_map(|modification| {
-                if let SubMutation::Cursor { cursor: cur } = modification {
-                    Some(cur)
+                if let SubMutation::Cursor { cursor: cur, new_cursor } = modification {
+                    Some(new_cursor)
                 } else {
                     None
                 }
@@ -461,13 +467,24 @@ impl Index<(DocCharOffset, DocCharOffset)> for SubBuffer {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
+
     use crate::buffer::{SubBuffer, SubMutation};
     use crate::input::cursor::Cursor;
+    use crate::offset_types::DocCharOffset;
+
+    fn c(x: Cursor) -> (Cursor, Cursor) {
+        (x, x)
+    }
+
+    fn h(x: Vec<(Cursor, Cursor)>) -> HashMap<Cursor, Cursor> {
+        x.into_iter().collect()
+    }
 
     #[test]
     fn apply_mods_none_empty_doc() {
         let mut buffer: SubBuffer = "".into();
-        buffer.cursor = Default::default();
+        buffer.cursors = Default::default();
         let mut debug = Default::default();
 
         let mods = Default::default();
@@ -475,7 +492,7 @@ mod test {
         let (text_updated, _, _) = buffer.apply_modification(mods, &mut debug);
 
         assert_eq!(buffer.text, "");
-        assert_eq!(buffer.cursor, Default::default());
+        assert_eq!(buffer.cursors, Default::default());
         assert!(!debug.draw_enabled);
         assert!(!text_updated);
     }
@@ -483,7 +500,7 @@ mod test {
     #[test]
     fn apply_mods_none() {
         let mut buffer: SubBuffer = "document content".into();
-        buffer.cursor = 9.into();
+        buffer.cursors = h(vec![c(9.into())]);
         let mut debug = Default::default();
 
         let mods = Default::default();
@@ -491,7 +508,7 @@ mod test {
         let (text_updated, _, _) = buffer.apply_modification(mods, &mut debug);
 
         assert_eq!(buffer.text, "document content");
-        assert_eq!(buffer.cursor, 9.into());
+        assert_eq!(buffer.cursors, h(vec![c(9.into())]));
         assert!(!debug.draw_enabled);
         assert!(!text_updated);
     }
@@ -499,7 +516,7 @@ mod test {
     #[test]
     fn apply_mods_insert() {
         let mut buffer: SubBuffer = "document content".into();
-        buffer.cursor = 9.into();
+        buffer.cursors = h(vec![c(9.into())]);
         let mut debug = Default::default();
 
         let mods = vec![SubMutation::Insert { text: "new ".to_string(), advance_cursor: true }];
@@ -507,7 +524,7 @@ mod test {
         let (text_updated, _, _) = buffer.apply_modification(mods, &mut debug);
 
         assert_eq!(buffer.text, "document new content");
-        assert_eq!(buffer.cursor, 13.into());
+        assert_eq!(buffer.cursors, h(vec![c(13.into())]));
         assert!(!debug.draw_enabled);
         assert!(text_updated);
     }
@@ -515,7 +532,7 @@ mod test {
     #[test]
     fn apply_mods_insert_no_advance() {
         let mut buffer: SubBuffer = "document content".into();
-        buffer.cursor = 9.into();
+        buffer.cursors = h(vec![c(9.into())]);
         let mut debug = Default::default();
 
         let mods = vec![SubMutation::Insert { text: "new ".to_string(), advance_cursor: false }];
@@ -523,7 +540,7 @@ mod test {
         let (text_updated, _, _) = buffer.apply_modification(mods, &mut debug);
 
         assert_eq!(buffer.text, "document new content");
-        assert_eq!(buffer.cursor, 9.into());
+        assert_eq!(buffer.cursors, h(vec![c(9.into())]));
         assert!(!debug.draw_enabled);
         assert!(text_updated);
     }
@@ -534,7 +551,7 @@ mod test {
             cursor_a: Cursor,
             cursor_b: Cursor,
             expected_buffer: &'static str,
-            expected_cursor: (usize, usize),
+            expected_cursor: (DocCharOffset, DocCharOffset),
         }
 
         let cases = [
@@ -542,69 +559,68 @@ mod test {
                 cursor_a: 0.into(),
                 cursor_b: 0.into(),
                 expected_buffer: "ab1234567",
-                expected_cursor: (2, 2),
+                expected_cursor: (2.into(), 2.into()),
             },
             Case {
                 cursor_a: (1, 3).into(),
                 cursor_b: (4, 6).into(),
                 expected_buffer: "1a4b7",
-                expected_cursor: (4, 4),
+                expected_cursor: (4.into(), 4.into()),
             },
             Case {
                 cursor_a: (4, 6).into(),
                 cursor_b: (1, 3).into(),
                 expected_buffer: "1b4a7",
-                expected_cursor: (2, 2),
+                expected_cursor: (2.into(), 2.into()),
             },
             Case {
                 cursor_a: (1, 5).into(),
                 cursor_b: (2, 6).into(),
                 expected_buffer: "1ab7",
-                expected_cursor: (3, 3),
+                expected_cursor: (3.into(), 3.into()),
             },
             Case {
                 cursor_a: (2, 6).into(),
                 cursor_b: (1, 5).into(),
                 expected_buffer: "1b7",
-                expected_cursor: (2, 2),
+                expected_cursor: (2.into(), 2.into()),
             },
             Case {
                 cursor_a: (1, 6).into(),
                 cursor_b: (2, 5).into(),
                 expected_buffer: "1ab7",
-                expected_cursor: (3, 3),
+                expected_cursor: (3.into(), 3.into()),
             },
             Case {
                 cursor_a: (2, 5).into(),
                 cursor_b: (1, 6).into(),
                 expected_buffer: "1b7",
-                expected_cursor: (2, 2),
+                expected_cursor: (2.into(), 2.into()),
             },
             Case {
                 cursor_a: (1, 6).into(),
                 cursor_b: (1, 1).into(),
                 expected_buffer: "1ab7",
-                expected_cursor: (3, 3),
+                expected_cursor: (3.into(), 3.into()),
             },
         ];
 
         for case in cases {
             let mut buffer: SubBuffer = "1234567".into();
-            buffer.cursor = case.cursor_a;
+            buffer.cursors = h(vec![c(case.cursor_a)]);
 
             let mut debug = Default::default();
 
             let mods = vec![
                 SubMutation::Insert { text: "a".to_string(), advance_cursor: true },
-                SubMutation::Cursor { cursor: case.cursor_b },
+                SubMutation::Cursor { cursor: case.cursor_a, new_cursor: case.cursor_b },
                 SubMutation::Insert { text: "b".to_string(), advance_cursor: true },
             ];
 
             let (text_updated, _, _) = buffer.apply_modification(mods, &mut debug);
 
             assert_eq!(buffer.text, case.expected_buffer);
-            assert_eq!(buffer.cursor.selection.1 .0, case.expected_cursor.0);
-            assert_eq!(buffer.cursor.selection.0, case.expected_cursor.1);
+            assert_eq!(buffer.cursors.values().last().unwrap().selection, case.expected_cursor);
             assert!(!debug.draw_enabled);
             assert!(text_updated);
         }

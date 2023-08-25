@@ -17,7 +17,7 @@ use unicode_segmentation::UnicodeSegmentation;
 pub fn calc(
     modification: Modification, buffer: &SubBuffer, galleys: &Galleys, bounds: &Bounds, ast: &Ast,
 ) -> EditorMutation {
-    let current_cursor = buffer.cursor;
+    let current_cursor = buffer.cursors;
     let mut mutation = Vec::new();
     match modification {
         Modification::Select { region } => mutation.push(SubMutation::Cursor {

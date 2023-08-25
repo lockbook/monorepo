@@ -5,6 +5,7 @@ use crate::input::canonical::Offset;
 use crate::offset_types::*;
 use crate::unicode_segs::UnicodeSegs;
 use egui::{Modifiers, Pos2, Vec2};
+use std::hash::{Hash, Hasher};
 use std::ops::Range;
 use std::time::{Duration, Instant};
 
@@ -12,7 +13,7 @@ use std::time::{Duration, Instant};
 const DRAG_DURATION: Duration = Duration::from_millis(300);
 const DRAG_DISTANCE: f32 = 10.0;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Cursor {
     /// Selected text. When selection is empty, elements are equal. First element represents start
     /// of selection and second element represents end of selection, which is the primary cursor
@@ -29,6 +30,22 @@ pub struct Cursor {
 
     /// Highlighted region within marked text to indicate keyboard suggestion target
     pub mark_highlight: Option<(DocCharOffset, DocCharOffset)>,
+}
+
+impl PartialEq for Cursor {
+    fn eq(&self, other: &Self) -> bool {
+        self.selection.start() == other.selection.start()
+            && self.selection.end() == other.selection.end()
+    }
+}
+
+impl Eq for Cursor {}
+
+impl Hash for Cursor {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.selection.start().hash(state);
+        self.selection.end().hash(state);
+    }
 }
 
 impl From<usize> for Cursor {

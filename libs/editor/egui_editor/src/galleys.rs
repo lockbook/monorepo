@@ -88,19 +88,19 @@ pub fn calc(
                     if !past_selection_start {
                         // before selection start
                         text_range_portion.range.1 =
-                            cmp::min(text_range_portion.range.1, buffer.cursor.selection.start());
+                            cmp::min(text_range_portion.range.1, buffer.cursors.selection.start());
                     } else if !past_selection_end {
                         // in selection
                         text_range_portion.range.0 =
-                            cmp::max(text_range_portion.range.0, buffer.cursor.selection.start());
+                            cmp::max(text_range_portion.range.0, buffer.cursors.selection.start());
                         text_range_portion.range.1 =
-                            cmp::min(text_range_portion.range.1, buffer.cursor.selection.end());
+                            cmp::min(text_range_portion.range.1, buffer.cursors.selection.end());
 
                         in_selection = true;
                     } else {
                         // after selection end
                         text_range_portion.range.0 =
-                            cmp::max(text_range_portion.range.0, buffer.cursor.selection.end());
+                            cmp::max(text_range_portion.range.0, buffer.cursors.selection.end());
                     }
 
                     // advance text range, paragraph, and cursor if they were completed
@@ -110,10 +110,10 @@ pub fn calc(
                     if text_range_portion.range.1 >= paragraph.1 {
                         emit_galley = true;
                     }
-                    if text_range_portion.range.1 >= buffer.cursor.selection.start() {
+                    if text_range_portion.range.1 >= buffer.cursors.selection.start() {
                         past_selection_start = true;
                     }
-                    if text_range_portion.range.1 >= buffer.cursor.selection.end() {
+                    if text_range_portion.range.1 >= buffer.cursors.selection.end() {
                         past_selection_end = true;
                     }
 
@@ -123,7 +123,7 @@ pub fn calc(
                 let captured = match appearance.markdown_capture(text_range.node(ast).node_type()) {
                     CaptureCondition::Always => true,
                     CaptureCondition::NoCursor => {
-                        !text_range.intersects_selection(ast, buffer.cursor)
+                        !text_range.intersects_selection(ast, buffer.cursors)
                     }
                     CaptureCondition::Never => false,
                 };

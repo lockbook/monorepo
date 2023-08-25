@@ -313,7 +313,7 @@ impl Editor {
                 &self.ast,
                 &self.appearance,
                 &self.buffer.current.segs,
-                self.buffer.current.cursor,
+                self.buffer.current.cursors,
             );
         }
         if text_updated || selection_updated || theme_updated {
@@ -345,11 +345,11 @@ impl Editor {
                 .range_bound(Bound::Doc, false, false, &self.bounds)
                 .unwrap() // there's always a document
         };
-        if selection_updated && self.buffer.current.cursor.selection != all_selection {
+        if selection_updated && self.buffer.current.cursors.selection != all_selection {
             let cursor_end_line = self
                 .buffer
                 .current
-                .cursor
+                .cursors
                 .end_line(&self.galleys, &self.bounds.text);
             let rect = Rect { min: cursor_end_line[0], max: cursor_end_line[1] };
             ui.scroll_to_rect(rect, None);
@@ -367,7 +367,7 @@ impl Editor {
             potential_title,
 
             show_edit_menu: self.maybe_menu_location.is_some(),
-            has_selection: self.buffer.current.cursor.selection().is_some(),
+            has_selection: self.buffer.current.cursors.selection().is_some(),
             selection_updated,
             edit_menu_x: self.maybe_menu_location.map(|p| p.x).unwrap_or_default(),
             edit_menu_y: self.maybe_menu_location.map(|p| p.y).unwrap_or_default(),
@@ -386,10 +386,10 @@ impl Editor {
 
         // determine styles at cursor location
         // todo: check for styles in selection
-        if self.buffer.current.cursor.selection.is_empty() {
+        if self.buffer.current.cursors.selection.is_empty() {
             for style in self
                 .ast
-                .styles_at_offset(self.buffer.current.cursor.selection.start())
+                .styles_at_offset(self.buffer.current.cursors.selection.start())
             {
                 match style {
                     MarkdownNode::Inline(InlineNode::Bold) => result.cursor_in_bold = true,
@@ -423,25 +423,25 @@ impl Editor {
         if let BoundCase::BetweenRanges { range_after, .. } = self
             .buffer
             .current
-            .cursor
+            .cursors
             .selection
             .0
             .bound_case(&self.bounds.text)
         {
-            self.buffer.current.cursor.selection.0 = range_after.start();
+            self.buffer.current.cursors.selection.0 = range_after.start();
         }
         if let BoundCase::BetweenRanges { range_after, .. } = self
             .buffer
             .current
-            .cursor
+            .cursors
             .selection
             .1
             .bound_case(&self.bounds.text)
         {
-            self.buffer.current.cursor.selection.1 = range_after.start();
+            self.buffer.current.cursors.selection.1 = range_after.start();
         }
 
-        let prior_selection = self.buffer.current.cursor.selection;
+        let prior_selection = self.buffer.current.cursors.selection;
         let click_checker = EditorClickChecker {
             ui_rect: self.ui_rect,
             galleys: &self.galleys,
@@ -476,7 +476,7 @@ impl Editor {
             bounds: &self.bounds,
         };
         if touch_mode {
-            let current_cursor = self.buffer.current.cursor;
+            let current_cursor = self.buffer.current.cursors;
             let current_selection = current_cursor.selection;
 
             let touched_a_galley = events.iter().any(|e| {
@@ -515,7 +515,7 @@ impl Editor {
                 self.maybe_menu_location = Some(
                     self.buffer
                         .current
-                        .cursor
+                        .cursors
                         .end_line(&self.galleys, &self.bounds.text)[0],
                 );
             } else {
@@ -523,7 +523,7 @@ impl Editor {
             }
             if touched_cursor || touched_selection {
                 // put the cursor back the way it was
-                self.buffer.current.cursor.selection = prior_selection;
+                self.buffer.current.cursors.selection = prior_selection;
             }
         }
 
@@ -540,7 +540,7 @@ impl Editor {
         self.maybe_to_clipboard = maybe_to_clipboard;
         self.maybe_opened_url = maybe_opened_url;
         self.text_updated = text_updated;
-        self.selection_updated = self.buffer.current.cursor.selection != prior_selection;
+        self.selection_updated = self.buffer.current.cursors.selection != prior_selection;
     }
 
     pub fn set_text(&mut self, text: String) {

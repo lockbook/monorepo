@@ -112,7 +112,7 @@ impl Editor {
 
     pub fn draw_cursor(&mut self, ui: &mut Ui, touch_mode: bool) {
         // determine cursor style
-        let cursor = self.buffer.current.cursor;
+        let cursor = self.buffer.current.cursors;
         let selection_start_line = cursor.start_line(&self.galleys, &self.bounds.text);
         let selection_end_line = cursor.end_line(&self.galleys, &self.bounds.text);
 
@@ -250,15 +250,15 @@ impl Editor {
 
         let cursor_info = format!(
             "selection: ({:?}, {:?}), byte: {:?}, x_target: {}",
-            self.buffer.current.cursor.selection.0,
-            self.buffer.current.cursor.selection.1,
+            self.buffer.current.cursors.selection.0,
+            self.buffer.current.cursors.selection.1,
             self.buffer
                 .current
                 .segs
-                .offset_to_byte(self.buffer.current.cursor.selection.1),
+                .offset_to_byte(self.buffer.current.cursors.selection.1),
             self.buffer
                 .current
-                .cursor
+                .cursors
                 .x_target
                 .map(|x| x.to_string())
                 .unwrap_or_else(|| "None".to_string()),

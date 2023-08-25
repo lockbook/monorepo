@@ -39,7 +39,7 @@ pub fn calc_words(buffer: &SubBuffer, ast: &Ast, appearance: &Appearance) -> Wor
                 let captured = match appearance.markdown_capture(text_range.node(ast).node_type()) {
                     CaptureCondition::Always => true,
                     CaptureCondition::NoCursor => {
-                        !text_range.intersects_selection(ast, buffer.cursor)
+                        !text_range.intersects_selection(ast, buffer.cursors)
                     }
                     CaptureCondition::Never => false,
                 };

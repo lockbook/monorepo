@@ -122,7 +122,7 @@ pub unsafe extern "C" fn text_in_range(obj: *mut c_void, range: CTextRange) -> *
 #[no_mangle]
 pub unsafe extern "C" fn get_selected(obj: *mut c_void) -> CTextRange {
     let obj = &mut *(obj as *mut WgpuEditor);
-    let (start, end) = obj.editor.buffer.current.cursor.selection;
+    let (start, end) = obj.editor.buffer.current.cursors.selection;
 
     CTextRange {
         none: false,
@@ -175,7 +175,7 @@ pub unsafe extern "C" fn select_all(obj: *mut c_void) {
 #[no_mangle]
 pub unsafe extern "C" fn get_marked(obj: *mut c_void) -> CTextRange {
     let obj = &mut *(obj as *mut WgpuEditor);
-    match obj.editor.buffer.current.cursor.mark {
+    match obj.editor.buffer.current.cursors.mark {
         None => CTextRange { none: true, ..Default::default() },
         Some((start, end)) => CTextRange {
             none: false,
@@ -482,7 +482,7 @@ pub unsafe extern "C" fn bound_at_position(
     };
     let cursor = mutation::region_to_cursor(
         Region::BoundAt { bound, location: Location::DocCharOffset(pos.pos.into()), backwards },
-        buffer.cursor,
+        buffer.cursors,
         buffer,
         galleys,
         &obj.editor.bounds,
