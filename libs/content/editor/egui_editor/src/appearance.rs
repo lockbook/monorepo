@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use egui::ecolor::Hsva;
 use egui::{Color32, Visuals};
 use pulldown_cmark::HeadingLevel;
 
@@ -59,6 +58,7 @@ pub struct Appearance {
     // colors
     pub text: Option<ThemedColor>,
     pub cursor: Option<ThemedColor>,
+    pub selection_text: Option<ThemedColor>,
     pub selection_bg: Option<ThemedColor>,
     pub checkbox_bg: Option<ThemedColor>,
     pub heading: Option<ThemedColor>,
@@ -101,24 +101,11 @@ impl Appearance {
     }
 
     pub fn cursor(&self) -> Color32 {
-        self.cursor.unwrap_or(BLUE).get(self.current_theme)
+        self.cursor.unwrap_or(GREEN).get(self.current_theme)
     }
 
     pub fn selection_bg(&self) -> Color32 {
-        let mut color = BLUE;
-
-        color.light = {
-            let mut color_hsva = Hsva::from(color.light);
-            color_hsva.s /= 2.0;
-            Color32::from(color_hsva)
-        };
-        color.dark = {
-            let mut color_hsva = Hsva::from(color.dark);
-            color_hsva.a /= 10.0;
-            Color32::from(color_hsva)
-        };
-
-        self.selection_bg.unwrap_or(color).get(self.current_theme)
+        self.selection_bg.unwrap_or(GRAY_5).get(self.current_theme)
     }
 
     pub fn checkbox_bg(&self) -> Color32 {
@@ -134,7 +121,7 @@ impl Appearance {
     }
 
     pub fn code(&self) -> Color32 {
-        self.code.unwrap_or(PINK).get(self.current_theme)
+        self.code.unwrap_or(GREEN).get(self.current_theme)
     }
 
     pub fn bold(&self) -> Color32 {
@@ -150,7 +137,7 @@ impl Appearance {
     }
 
     pub fn link(&self) -> Color32 {
-        self.link.unwrap_or(BLUE).get(self.current_theme)
+        self.link.unwrap_or(GREEN).get(self.current_theme)
     }
 
     pub fn syntax(&self) -> Color32 {

@@ -47,7 +47,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             theme_mode: ThemeMode::System,
-            theme_color: lb::ColorAlias::Blue,
+            theme_color: lb::ColorAlias::Green,
             toolbar_visibility: ToolBarVisibility::Maximized,
             window_maximize: false,
             open_new_files: true,
