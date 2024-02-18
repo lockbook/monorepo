@@ -1,4 +1,5 @@
 [toolchain]
+channel = "1.74.0"
 targets = [
     "aarch64-apple-ios",
     "x86_64-apple-ios",
