@@ -408,13 +408,13 @@ impl GalleyInfo {
         Rect { min, max }
     }
 
-    pub fn checkbox_hit_bounds(self, touch_mode: bool, appearance: &Appearance) -> Rect {
+    pub fn checkbox_hit_bounds(&self, touch_mode: bool, appearance: &Appearance) -> Rect {
         let bounds = self.checkbox_bounds(appearance);
         let padding = if touch_mode { 6.0 } else { 2.0 };
         Rect { min: bounds.min - Vec2::splat(padding), max: bounds.max + Vec2::splat(padding) }
     }
 
-    pub fn checkbox_slash(&self, touch_mode: bool, appearance: &Appearance) -> [Pos2; 2] {
+    pub fn checkbox_slash(&self, appearance: &Appearance) -> [Pos2; 2] {
         let bounds = self.checkbox_bounds(appearance);
         [Pos2 { x: bounds.min.x, y: bounds.max.y }, Pos2 { x: bounds.max.x, y: bounds.min.y }]
     }

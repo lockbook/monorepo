@@ -54,13 +54,13 @@ impl Editor {
                         }
                         ListItem::Todo(checked) => {
                             ui.painter().rect_filled(
-                                galley.checkbox_bounds(touch_mode, &self.appearance),
+                                galley.checkbox_bounds(&self.appearance),
                                 self.appearance.checkbox_rounding(),
                                 self.appearance.checkbox_bg(),
                             );
                             if *checked {
                                 ui.painter().line_segment(
-                                    galley.checkbox_slash(touch_mode, &self.appearance),
+                                    galley.checkbox_slash(&self.appearance),
                                     Stroke {
                                         width: self.appearance.checkbox_slash_width(),
                                         color: self.appearance.text(),
