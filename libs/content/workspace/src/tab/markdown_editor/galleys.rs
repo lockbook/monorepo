@@ -394,12 +394,12 @@ impl GalleyInfo {
         Rect { min, max }
     }
 
-    pub fn checkbox_bounds(&self, touch_mode: bool, appearance: &Appearance) -> Rect {
+    pub fn checkbox_bounds(&self, appearance: &Appearance) -> Rect {
         let bullet_center = self.bullet_center();
         let mut min = bullet_center;
         let mut max = bullet_center;
 
-        let dim = appearance.checkbox_dim(touch_mode);
+        let dim = appearance.checkbox_dim();
         min.x -= dim / 2.0;
         max.x += dim / 2.0;
         min.y -= dim / 2.0;
@@ -408,8 +408,14 @@ impl GalleyInfo {
         Rect { min, max }
     }
 
+    pub fn checkbox_hit_bounds(self, touch_mode: bool, appearance: &Appearance) -> Rect {
+        let bounds = self.checkbox_bounds(appearance);
+        let padding = if touch_mode { 6.0 } else { 2.0 };
+        Rect { min: bounds.min - Vec2::splat(padding), max: bounds.max + Vec2::splat(padding) }
+    }
+
     pub fn checkbox_slash(&self, touch_mode: bool, appearance: &Appearance) -> [Pos2; 2] {
-        let bounds = self.checkbox_bounds(touch_mode, appearance);
+        let bounds = self.checkbox_bounds(appearance);
         [Pos2 { x: bounds.min.x, y: bounds.max.y }, Pos2 { x: bounds.max.x, y: bounds.min.y }]
     }
 

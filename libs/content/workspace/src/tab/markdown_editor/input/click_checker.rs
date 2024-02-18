@@ -86,7 +86,7 @@ impl<'a> ClickChecker for &'a EditorClickChecker<'a> {
         for (galley_idx, galley) in self.galleys.galleys.iter().enumerate() {
             if let Some(Annotation::Item(ListItem::Todo(_), ..)) = galley.annotation {
                 if galley
-                    .checkbox_bounds(touch_mode, self.appearance)
+                    .checkbox_hit_bounds(touch_mode, self.appearance)
                     .contains(pos)
                 {
                     return Some(galley_idx);
