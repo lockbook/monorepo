@@ -1,4 +1,4 @@
-use egui::{Color32, Context};
+use egui::{Color32, Context, Image, Widget};
 use std::ops::Deref;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Receiver, Sender};
@@ -16,7 +16,6 @@ use crate::tab::svg_editor::SVGEditor;
 use crate::tab::{Tab, TabContent, TabFailure};
 use crate::theme::icons::Icon;
 use crate::widgets::{separator, Button, ToolBarVisibility};
-use egui_extras::RetainedImage;
 use lb_rs::{File, FileType, LbError, NameComponents, SyncProgress, SyncStatus, Uuid};
 
 pub struct Workspace {
@@ -24,7 +23,7 @@ pub struct Workspace {
 
     pub tabs: Vec<Tab>,
     pub active_tab: usize,
-    pub backdrop: RetainedImage,
+    pub backdrop: Image<'static>,
 
     pub ctx: Context,
     pub core: lb_rs::Core,
@@ -97,7 +96,8 @@ impl Workspace {
             cfg,
             tabs: vec![],
             active_tab: 0,
-            backdrop: RetainedImage::from_image_bytes("logo-backdrop", LOGO_BACKDROP).unwrap(),
+            backdrop: Image::from_bytes("logo-backdrop", LOGO_BACKDROP)
+                .fit_to_exact_size(egui::vec2(100.0, 100.0)),
             ctx: ctx.clone(),
             core: core.clone(),
             updates_rx,
@@ -237,7 +237,7 @@ impl Workspace {
     fn show_empty_workspace(&mut self, ui: &mut egui::Ui, out: &mut WsOutput) {
         ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
             ui.add_space(ui.clip_rect().height() / 3.0);
-            self.backdrop.show_size(ui, egui::vec2(100.0, 100.0));
+            self.backdrop.clone().ui(ui);
 
             ui.label(egui::RichText::new("Welcome to your Lockbook").size(40.0));
             ui.label(

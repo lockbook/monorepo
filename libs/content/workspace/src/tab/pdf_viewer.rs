@@ -143,16 +143,14 @@ impl PdfViewer {
                     ui.vertical_centered(|ui| {
                         for (i, p) in self.renders.clone().iter_mut().enumerate() {
                             let res = ui.add(
-                                egui::Image::new(
-                                    &p.texture,
-                                    egui::vec2(
+                                egui::Image::new(&p.texture)
+                                    .fit_to_exact_size(egui::vec2(
                                         p.texture.size()[0] as f32
                                             * self.zoom_factor.unwrap_or(1.0),
                                         p.texture.size()[1] as f32
                                             * self.zoom_factor.unwrap_or(1.0),
-                                    ),
-                                )
-                                .sense(egui::Sense::click()),
+                                    ))
+                                    .sense(egui::Sense::click()),
                             );
 
                             if p.offset.is_none() {
@@ -318,17 +316,15 @@ impl PdfViewer {
                                     };
 
                                     let res = ui.add(
-                                        egui::Image::new(
-                                            &p.texture,
-                                            egui::vec2(
+                                        egui::Image::new(&p.texture)
+                                            .fit_to_exact_size(egui::vec2(
                                                 SIDEBAR_WIDTH - sidebar_margin,
                                                 p.texture.size()[1] as f32
                                                     * (SIDEBAR_WIDTH - sidebar_margin)
                                                     / p.texture.size()[0] as f32,
-                                            ),
-                                        )
-                                        .tint(tint_color)
-                                        .sense(egui::Sense::click()),
+                                            ))
+                                            .tint(tint_color)
+                                            .sense(egui::Sense::click()),
                                     );
 
                                     if sidebar.thumbnails[i].offset.is_none() {

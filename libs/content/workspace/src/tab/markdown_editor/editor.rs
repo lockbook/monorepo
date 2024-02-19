@@ -2,7 +2,9 @@ use std::cmp;
 use std::time::{Duration, Instant};
 
 use egui::os::OperatingSystem;
-use egui::{Color32, Context, Event, FontDefinitions, Frame, Pos2, Rect, Sense, Ui, Vec2};
+use egui::{
+    Color32, Context, Event, EventFilter, FontDefinitions, Frame, Pos2, Rect, Sense, Ui, Vec2,
+};
 use serde::Serialize;
 
 use crate::tab::markdown_editor::appearance::Appearance;
@@ -189,7 +191,10 @@ impl Editor {
                 ui.memory_mut(|m| {
                     if m.has_focus(id) {
                         focus = true;
-                        m.lock_focus(id, true);
+                        m.set_focus_lock_filter(
+                            id,
+                            EventFilter { tab: true, arrows: true, escape: true },
+                        );
                     }
                 });
 
@@ -207,7 +212,7 @@ impl Editor {
         if focus {
             ui.memory_mut(|m| {
                 m.request_focus(id);
-                m.lock_focus(id, true);
+                m.set_focus_lock_filter(id, EventFilter { tab: true, arrows: true, escape: true });
             });
         }
 

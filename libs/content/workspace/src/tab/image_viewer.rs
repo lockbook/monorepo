@@ -1,20 +1,19 @@
-use egui_extras::RetainedImage;
+use egui::{Image, Widget};
 
 pub struct ImageViewer {
-    pub bytes: Vec<u8>,
-    img: RetainedImage,
+    img: Image<'static>,
 }
 
 impl ImageViewer {
     pub fn new(id: impl Into<String>, bytes: &[u8]) -> Self {
         let bytes = Vec::from(bytes);
-        let img = RetainedImage::from_image_bytes(id, &bytes).unwrap();
+        let img = Image::from_bytes(id.into(), bytes);
 
-        Self { bytes, img }
+        Self { img }
     }
 
     pub fn show(&mut self, ui: &mut egui::Ui) {
-        self.img.show(ui);
+        self.img.clone().ui(ui);
     }
 }
 

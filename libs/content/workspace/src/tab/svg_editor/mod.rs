@@ -162,11 +162,9 @@ impl SVGEditor {
             .load_texture("svg_image", image, egui::TextureOptions::LINEAR);
 
         ui.add(
-            egui::Image::new(
-                &texture,
-                egui::vec2(texture.size()[0] as f32, texture.size()[1] as f32),
-            )
-            .sense(egui::Sense::click()),
+            egui::Image::new(&texture)
+                .fit_to_exact_size(egui::vec2(texture.size()[0] as f32, texture.size()[1] as f32))
+                .sense(egui::Sense::click()),
         );
     }
 

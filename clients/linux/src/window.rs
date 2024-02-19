@@ -301,12 +301,11 @@ unsafe impl HasRawDisplayHandle for WindowHandle {
 pub fn init<W: raw_window_handle::HasRawWindowHandle + raw_window_handle::HasRawDisplayHandle>(
     window: &W, screen: ScreenDescriptor, dark_mode: bool,
 ) -> WgpuLockbook {
-    let backends = wgpu::Backends::PRIMARY;
+    let backends = wgpu::Backends::all();
     let instance_desc = wgpu::InstanceDescriptor { backends, ..Default::default() };
     let instance = wgpu::Instance::new(instance_desc);
     let surface = unsafe { instance.create_surface(window) }.unwrap();
-    let (adapter, device, queue) =
-        pollster::block_on(request_device(&instance, backends, &surface));
+    let (adapter, device, queue) = pollster::block_on(request_device(&instance, &surface));
     let format = surface.get_capabilities(&adapter).formats[0];
     let surface_config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -349,12 +348,11 @@ pub fn init<W: raw_window_handle::HasRawWindowHandle + raw_window_handle::HasRaw
 }
 
 async fn request_device(
-    instance: &wgpu::Instance, backend: wgpu::Backends, surface: &wgpu::Surface,
+    instance: &wgpu::Instance, surface: &wgpu::Surface,
 ) -> (wgpu::Adapter, wgpu::Device, wgpu::Queue) {
-    let adapter =
-        wgpu::util::initialize_adapter_from_env_or_default(instance, backend, Some(surface))
-            .await
-            .expect("No suitable GPU adapters found on the system!");
+    let adapter = wgpu::util::initialize_adapter_from_env_or_default(instance, Some(surface))
+        .await
+        .expect("No suitable GPU adapters found on the system!");
     let res = adapter
         .request_device(
             &wgpu::DeviceDescriptor {
