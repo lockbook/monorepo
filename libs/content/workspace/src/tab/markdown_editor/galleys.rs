@@ -410,7 +410,7 @@ impl GalleyInfo {
 
     pub fn checkbox_hit_bounds(&self, touch_mode: bool, appearance: &Appearance) -> Rect {
         let bounds = self.checkbox_bounds(appearance);
-        let padding = if touch_mode { 6.0 } else { 2.0 };
+        let padding = if touch_mode { 20.0 } else { 2.0 };
         Rect { min: bounds.min - Vec2::splat(padding), max: bounds.max + Vec2::splat(padding) }
     }
 

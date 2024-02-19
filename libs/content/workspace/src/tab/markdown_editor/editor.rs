@@ -329,7 +329,7 @@ impl Editor {
         }
 
         // draw
-        self.draw_text(self.ui_rect.size(), ui, touch_mode);
+        self.draw_text(self.ui_rect.size(), ui);
         if ui.memory(|m| m.has_focus(id)) && !cfg!(target_os = "ios") {
             self.draw_cursor(ui, touch_mode);
         }

@@ -89,6 +89,7 @@ impl<'a> ClickChecker for &'a EditorClickChecker<'a> {
                     .checkbox_hit_bounds(touch_mode, self.appearance)
                     .contains(pos)
                 {
+                    println!("checkbox hit: {:?}", galley_idx);
                     return Some(galley_idx);
                 }
             }
