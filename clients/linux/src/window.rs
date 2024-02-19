@@ -301,7 +301,7 @@ unsafe impl HasRawDisplayHandle for WindowHandle {
 pub fn init<W: raw_window_handle::HasRawWindowHandle + raw_window_handle::HasRawDisplayHandle>(
     window: &W, screen: ScreenDescriptor, dark_mode: bool,
 ) -> WgpuLockbook {
-    let backends = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
+    let backends = wgpu::Backends::PRIMARY;
     let instance_desc = wgpu::InstanceDescriptor { backends, ..Default::default() };
     let instance = wgpu::Instance::new(instance_desc);
     let surface = unsafe { instance.create_surface(window) }.unwrap();
