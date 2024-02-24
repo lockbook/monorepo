@@ -2,7 +2,10 @@ use std::cmp;
 use std::time::{Duration, Instant};
 
 use egui::os::OperatingSystem;
-use egui::{Color32, Context, Event, FontDefinitions, Frame, Pos2, Rect, Sense, Ui, Vec2};
+use egui::{
+    Color32, Context, Event, FontDefinitions, Frame, Key, Pos2, Rect, Sense, TextEdit, Ui, Vec2,
+    Widget as _,
+};
 use serde::Serialize;
 
 use crate::tab::markdown_editor::appearance::Appearance;
@@ -103,7 +106,7 @@ pub struct Editor {
 impl Editor {
     pub fn new(core: lb_rs::Core, content: &str) -> Self {
         Self {
-            id: egui::Id::null(),
+            id: egui::Id::new("markdown_editor"),
             initialized: Default::default(),
 
             core,
@@ -157,12 +160,10 @@ impl Editor {
 
         let events = ui.ctx().input(|i| i.events.clone());
         // create id (even though we don't use interact response)
-        let id = ui.auto_id_with("lbeditor");
-        self.id = id;
-        ui.interact(self.scroll_area_rect, id, Sense::focusable_noninteractive());
+        ui.interact(self.scroll_area_rect, self.id, Sense::focusable_noninteractive());
 
         // calculate focus
-        let mut request_focus = ui.memory(|m| m.has_focus(id));
+        let mut request_focus = ui.memory(|m| m.has_focus(self.id));
         let mut surrender_focus = false;
         for event in &events {
             if let Event::PointerButton { pos, pressed: true, .. } = event {
@@ -174,7 +175,33 @@ impl Editor {
             }
         }
 
-        // show ui
+        let (events, custom_events) = if ui.memory(|m| m.has_focus(self.id))
+            || cfg!(target_os = "ios")
+        {
+            let events: Vec<Event> = events;
+            let custom_events: Vec<crate::Event> = ui.ctx().pop_events();
+            (events, custom_events)
+        } else if ui.memory(|m| m.has_focus(self.find.term_id)) {
+            let events: Vec<Event> = events
+                .into_iter()
+                .filter(|e| {
+                    matches!(e, Event::Key { key: Key::F, pressed: true, repeat: false, modifiers } if modifiers.command)
+                })
+                .collect::<Vec<Event>>();
+            let custom_events: Vec<crate::Event> = Default::default();
+            (events, custom_events)
+        } else {
+            let events: Vec<Event> = Default::default();
+            let custom_events: Vec<crate::Event> = Default::default();
+            (events, custom_events)
+        };
+
+        // show find widget
+        let mut find_just_focused = self.find.focused && !self.find.focused_last_frame;
+        if find_just_focused && self.find.visible_last_frame {
+            panic!("find_just_focused")
+        }
+        let mut find_just_hidden = false;
         if self.find.visible {
             egui::TopBottomPanel::top("search_panel").show_inside(ui, |ui| {
                 ui.vertical(|ui| {
@@ -185,11 +212,9 @@ impl Editor {
                         ui.spacing_mut().item_spacing = egui::vec2(10.0, 10.0);
 
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            if ui.button("Find").clicked() {
-                                // Logic to focus the search input or show the search UI
-                                println!("Find");
+                            if ui.button("X").clicked() {
+                                find_just_hidden = true;
                             }
-                            ui.text_edit_singleline(&mut self.find.term);
                             if ui.button("Next").clicked() {
                                 // Logic to navigate to the next search result
                                 println!("Next");
@@ -197,6 +222,18 @@ impl Editor {
                             if ui.button("Previous").clicked() {
                                 // Logic to navigate to the previous search result
                                 println!("Previous");
+                            }
+
+                            if !self.find.visible_last_frame {
+                                find_just_focused = true;
+                            }
+
+                            let response = TextEdit::singleline(&mut self.find.term)
+                                .hint_text("Find in document")
+                                .id(self.find.term_id)
+                                .ui(ui);
+                            if response.lost_focus() && !response.clicked_elsewhere() {
+                                find_just_hidden = true;
                             }
                         });
 
@@ -206,10 +243,27 @@ impl Editor {
                     ui.add_space(5.0);
                 });
             });
+        } else if self.find.visible_last_frame {
+            find_just_hidden = true;
         }
 
-        let mut focus = false;
+        if find_just_hidden {
+            self.find.visible = false;
+            request_focus = true;
+            surrender_focus = false;
+        }
+        if self.find.visible && find_just_focused {
+            ui.memory_mut(|m| {
+                m.request_focus(self.find.term_id);
+            });
+            request_focus = false;
+            surrender_focus = true;
+        }
+        self.find.visible_last_frame = self.find.visible;
+        self.find.focused_last_frame = self.find.focused;
 
+        // show markdown
+        let mut focus = false;
         let sao = egui::ScrollArea::vertical()
             .drag_to_scroll(touch_mode)
             .id_source(self.id)
@@ -219,16 +273,16 @@ impl Editor {
                 // set focus
                 if request_focus {
                     ui.memory_mut(|m| {
-                        m.request_focus(id);
+                        m.request_focus(self.id);
                     });
                 }
                 if surrender_focus {
-                    ui.memory_mut(|m| m.surrender_focus(id));
+                    ui.memory_mut(|m| m.surrender_focus(self.id));
                 }
                 ui.memory_mut(|m| {
-                    if m.has_focus(id) {
+                    if m.has_focus(self.id) {
                         focus = true;
-                        m.lock_focus(id, true);
+                        m.lock_focus(self.id, true);
                     }
                 });
 
@@ -238,15 +292,19 @@ impl Editor {
                 Frame::default()
                     .fill(fill)
                     .inner_margin(egui::Margin::symmetric(7.0, 15.0))
-                    .show(ui, |ui| ui.vertical_centered(|ui| self.ui(ui, id, touch_mode, &events)))
+                    .show(ui, |ui| {
+                        ui.vertical_centered(|ui| {
+                            self.ui(ui, self.id, touch_mode, events, custom_events)
+                        })
+                    })
             });
         self.ui_rect = sao.inner_rect;
 
         // set focus again because egui clears it for our widget for some reason
         if focus {
             ui.memory_mut(|m| {
-                m.request_focus(id);
-                m.lock_focus(id, true);
+                m.request_focus(self.id);
+                m.lock_focus(self.id, true);
             });
         }
 
@@ -259,7 +317,8 @@ impl Editor {
     }
 
     fn ui(
-        &mut self, ui: &mut Ui, id: egui::Id, touch_mode: bool, events: &[Event],
+        &mut self, ui: &mut Ui, id: egui::Id, touch_mode: bool, events: Vec<Event>,
+        custom_events: Vec<crate::Event>,
     ) -> EditorResponse {
         self.debug.frame_start();
 
@@ -274,21 +333,14 @@ impl Editor {
 
         // process events
         let (text_updated, selection_updated, pointer_offset_updated) = if self.initialized {
-            if ui.memory(|m| m.has_focus(id)) || cfg!(target_os = "ios") {
-                let custom_events = ui.ctx().pop_events();
-                self.process_events(events, &custom_events, touch_mode);
-                if let Some(to_clipboard) = &self.maybe_to_clipboard {
-                    ui.output_mut(|o| o.copied_text = to_clipboard.clone());
-                }
-                if let Some(opened_url) = &self.maybe_opened_url {
-                    ui.output_mut(|o| {
-                        o.open_url = Some(egui::output::OpenUrl::new_tab(opened_url))
-                    });
-                }
-                (self.text_updated, self.selection_updated, self.pointer_offset_updated)
-            } else {
-                (false, false, false)
+            self.process_events(&events, &custom_events, touch_mode);
+            if let Some(to_clipboard) = &self.maybe_to_clipboard {
+                ui.output_mut(|o| o.copied_text = to_clipboard.clone());
             }
+            if let Some(opened_url) = &self.maybe_opened_url {
+                ui.output_mut(|o| o.open_url = Some(egui::output::OpenUrl::new_tab(opened_url)));
+            }
+            (self.text_updated, self.selection_updated, self.pointer_offset_updated)
         } else {
             ui.memory_mut(|m| m.request_focus(id));
 

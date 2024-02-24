@@ -92,7 +92,7 @@ pub enum Modification {
     Cut,
     Copy,
     ToggleDebug,
-    ToggleSearch,
+    Find, // show the find dialog (and search matches if there's a search term) if not already shown and focus it
     ToggleCheckbox(usize),
     OpenUrl(String),
     SetBaseFontSize(f32),
@@ -308,7 +308,7 @@ pub fn calc(
             Some(Modification::toggle_block_style(BlockNode::Rule))
         }
         Event::Key { key: Key::F, pressed: true, modifiers, .. } if modifiers.command => {
-            Some(Modification::ToggleSearch)
+            Some(Modification::Find)
         }
         Event::PointerButton { pos, button: PointerButton::Primary, pressed: true, modifiers }
             if click_checker.ui(*pos) =>

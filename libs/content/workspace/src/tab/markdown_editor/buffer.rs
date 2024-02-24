@@ -37,7 +37,7 @@ pub enum SubMutation {
     Insert { text: String, advance_cursor: bool }, // insert text at cursor location
     Delete(RelCharOffset),                         // delete selection or characters before cursor
     DebugToggle,                                   // toggle debug overlay
-    SearchToggle,                                  // toggle search input & match highlighting
+    Find,                                          // toggle search input & match highlighting
     SetBaseFontSize(f32), // set font size for plain text (other sizes scaled)
     ToClipboard { text: String }, // cut or copy text to clipboard
     OpenedUrl { url: String }, // open a url
@@ -267,14 +267,13 @@ impl SubBuffer {
                 SubMutation::DebugToggle => {
                     debug.draw_enabled = !debug.draw_enabled;
                 }
-                SubMutation::SearchToggle => {
-                    if !find.visible {
-                        let selected_text = cur_cursor.selection_text(self);
-                        if !selected_text.is_empty() {
-                            find.term = selected_text.to_string();
-                        }
+                SubMutation::Find => {
+                    let selected_text = cur_cursor.selection_text(self);
+                    if !selected_text.is_empty() {
+                        find.term = selected_text.to_string();
                     }
-                    find.visible = !find.visible;
+                    find.visible = true;
+                    find.focused = true;
                 }
                 SubMutation::SetBaseFontSize(size) => {
                     appearance.base_font_size = Some(size);
