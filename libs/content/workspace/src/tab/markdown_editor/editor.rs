@@ -10,6 +10,7 @@ use crate::tab::markdown_editor::ast::Ast;
 use crate::tab::markdown_editor::bounds::{BoundCase, Bounds};
 use crate::tab::markdown_editor::buffer::Buffer;
 use crate::tab::markdown_editor::debug::DebugInfo;
+use crate::tab::markdown_editor::find::FindState;
 use crate::tab::markdown_editor::galleys::Galleys;
 use crate::tab::markdown_editor::images::ImageCache;
 use crate::tab::markdown_editor::input::canonical::{Bound, Modification, Offset, Region};
@@ -94,6 +95,9 @@ pub struct Editor {
     pub scroll_area_offset: Vec2,
 
     pub old_scroll_area_offset: Vec2,
+
+    // find state (matches live in bounds)
+    pub find: FindState,
 }
 
 impl Editor {
@@ -134,6 +138,8 @@ impl Editor {
             scroll_area_rect: Rect { min: Default::default(), max: Default::default() },
             scroll_area_offset: Default::default(),
             old_scroll_area_offset: Default::default(),
+
+            find: Default::default(),
         }
     }
 
@@ -169,6 +175,39 @@ impl Editor {
         }
 
         // show ui
+        if self.find.visible {
+            egui::TopBottomPanel::top("search_panel").show_inside(ui, |ui| {
+                ui.vertical(|ui| {
+                    ui.add_space(4.0);
+
+                    ui.horizontal(|ui| {
+                        let previous_spacing = ui.spacing().item_spacing;
+                        ui.spacing_mut().item_spacing = egui::vec2(10.0, 10.0);
+
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            if ui.button("Find").clicked() {
+                                // Logic to focus the search input or show the search UI
+                                println!("Find");
+                            }
+                            ui.text_edit_singleline(&mut self.find.term);
+                            if ui.button("Next").clicked() {
+                                // Logic to navigate to the next search result
+                                println!("Next");
+                            }
+                            if ui.button("Previous").clicked() {
+                                // Logic to navigate to the previous search result
+                                println!("Previous");
+                            }
+                        });
+
+                        ui.spacing_mut().item_spacing = previous_spacing;
+                    });
+
+                    ui.add_space(5.0);
+                });
+            });
+        }
+
         let mut focus = false;
 
         let sao = egui::ScrollArea::vertical()
@@ -479,6 +518,7 @@ impl Editor {
             &self.ast,
             &mut self.buffer,
             &mut self.debug,
+            &mut self.find,
             &mut self.appearance,
         );
 

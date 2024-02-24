@@ -92,6 +92,7 @@ pub enum Modification {
     Cut,
     Copy,
     ToggleDebug,
+    ToggleSearch,
     ToggleCheckbox(usize),
     OpenUrl(String),
     SetBaseFontSize(f32),
@@ -305,6 +306,9 @@ pub fn calc(
             if modifiers.command && modifiers.alt =>
         {
             Some(Modification::toggle_block_style(BlockNode::Rule))
+        }
+        Event::Key { key: Key::F, pressed: true, modifiers, .. } if modifiers.command => {
+            Some(Modification::ToggleSearch)
         }
         Event::PointerButton { pos, button: PointerButton::Primary, pressed: true, modifiers }
             if click_checker.ui(*pos) =>

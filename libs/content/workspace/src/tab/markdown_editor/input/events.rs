@@ -3,6 +3,7 @@ use crate::tab::markdown_editor::ast::Ast;
 use crate::tab::markdown_editor::bounds::Bounds;
 use crate::tab::markdown_editor::buffer::{Buffer, EditorMutation};
 use crate::tab::markdown_editor::debug::DebugInfo;
+use crate::tab::markdown_editor::find::FindState;
 use crate::tab::markdown_editor::galleys::Galleys;
 use crate::tab::markdown_editor::input;
 use crate::tab::markdown_editor::input::canonical::Modification;
@@ -43,20 +44,20 @@ pub fn combine(
 /// (optional), and a link that was opened (optional)
 pub fn process(
     combined_events: &[Modification], galleys: &Galleys, bounds: &Bounds, ast: &Ast,
-    buffer: &mut Buffer, debug: &mut DebugInfo, appearance: &mut Appearance,
+    buffer: &mut Buffer, debug: &mut DebugInfo, find: &mut FindState, appearance: &mut Appearance,
 ) -> (bool, Option<String>, Option<String>) {
     combined_events
         .iter()
         .cloned()
         .map(|m| match input::mutation::calc(m, &buffer.current, galleys, bounds, ast) {
             EditorMutation::Buffer(mutations) if mutations.is_empty() => (false, None, None),
-            EditorMutation::Buffer(mutations) => buffer.apply(mutations, debug, appearance),
+            EditorMutation::Buffer(mutations) => buffer.apply(mutations, debug, find, appearance),
             EditorMutation::Undo => {
-                buffer.undo(debug, appearance);
+                buffer.undo(debug, find, appearance);
                 (true, None, None)
             }
             EditorMutation::Redo => {
-                buffer.redo(debug, appearance);
+                buffer.redo(debug, find, appearance);
                 (true, None, None)
             }
         })

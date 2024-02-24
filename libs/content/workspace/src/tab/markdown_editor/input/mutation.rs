@@ -676,6 +676,7 @@ pub fn calc(
         }
         Modification::OpenUrl(url) => mutation.push(SubMutation::OpenedUrl { url }),
         Modification::ToggleDebug => mutation.push(SubMutation::DebugToggle),
+        Modification::ToggleSearch => mutation.push(SubMutation::SearchToggle),
         Modification::SetBaseFontSize(size) => mutation.push(SubMutation::SetBaseFontSize(size)),
         Modification::ToggleCheckbox(galley_idx) => {
             let galley = &galleys[galley_idx];
