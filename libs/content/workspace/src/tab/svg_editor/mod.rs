@@ -152,7 +152,7 @@ impl SVGEditor {
         let tree = resvg::Tree::from_usvg(&utree);
 
         let pixmap_size = tree.size.to_int_size();
-        let mut pixmap = Pixmap::new(pixmap_size.width(), pixmap_size.height()).unwrap();
+        let mut pixmap = Pixmap::new(pixmap_size.width() * 4, pixmap_size.height() * 4).unwrap();
 
         tree.render(usvg::Transform::default(), &mut pixmap.as_mut());
         let image = egui::ColorImage::from_rgba_unmultiplied(
