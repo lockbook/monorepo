@@ -54,6 +54,7 @@ impl Pen {
                         .attr("stroke-linecap", "round")
                         .attr("id", id)
                         .attr("d", &self.path_builder.data)
+                        .attr("shape-rendering", "geometricPrecision")
                         .build();
 
                     buffer.current.append_child(child);
