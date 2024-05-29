@@ -68,13 +68,13 @@ pub struct Editor {
     pub buffer: Buffer,
     pub pointer_state: PointerState, // state of cursor not subject to undo history
     pub debug: DebugInfo,
-    pub images: ImageCache,
+    pub images: ImageCache<'i>,
     pub has_focus: bool,
 
     // cached intermediate state
     pub ast: Ast,
     pub bounds: Bounds,
-    pub galleys: Galleys,
+    pub galleys: Galleys<'i>,
 
     // computed state from last frame
     pub ui_rect: Rect,

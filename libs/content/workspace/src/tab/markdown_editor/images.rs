@@ -1,6 +1,6 @@
 use crate::tab::markdown_editor::ast::Ast;
 use crate::tab::markdown_editor::style::{InlineNode, MarkdownNode, Url};
-use egui::{ColorImage, TextureId, Ui};
+use egui::{Image, Ui};
 use lb_rs::Uuid;
 use resvg::tiny_skia::Pixmap;
 use resvg::usvg::{self, Transform, TreeParsing as _};
@@ -10,22 +10,22 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 #[derive(Clone, Default)]
-pub struct ImageCache {
-    pub map: HashMap<Url, Arc<Mutex<ImageState>>>,
+pub struct ImageCache<'i> {
+    pub map: HashMap<Url, Arc<Mutex<ImageState<'i>>>>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub enum ImageState {
+#[derive(Clone, Debug, Default)]
+pub enum ImageState<'i> {
     #[default]
     Loading,
-    Loaded(TextureId),
+    Loaded(Image<'i>),
     Failed(String),
 }
 
-pub fn calc(
+pub fn calc<'i>(
     ast: &Ast, prior_cache: &ImageCache, client: &reqwest::blocking::Client, core: &lb_rs::Core,
     ui: &Ui,
-) -> ImageCache {
+) -> ImageCache<'i> {
     let mut result = ImageCache::default();
 
     let mut prior_cache = prior_cache.clone();
@@ -53,9 +53,7 @@ pub fn calc(
 
                 // fetch image
                 thread::spawn(move || {
-                    let texture_manager = ctx.tex_manager();
-
-                    let texture_result = (|| -> Result<TextureId, String> {
+                    let texture_result = (|| -> Result<Image, String> {
                         // use core for lb:// urls
                         // todo: also handle relative paths
                         let maybe_lb_id = match url.strip_prefix("lb://") {
@@ -105,17 +103,7 @@ pub fn calc(
                             image_bytes
                         };
 
-                        let image =
-                            image::load_from_memory(&image_bytes).map_err(|e| e.to_string())?;
-                        let size_pixels = [image.width() as usize, image.height() as usize];
-
-                        let egui_image = egui::ImageData::Color(
-                            ColorImage::from_rgba_unmultiplied(size_pixels, &image.to_rgba8())
-                                .into(),
-                        );
-                        Ok(texture_manager
-                            .write()
-                            .alloc(title, egui_image, Default::default()))
+                        Ok(Image::from_bytes(format!("bytes://{}", url), image_bytes))
                     })();
 
                     match texture_result {
@@ -134,13 +122,6 @@ pub fn calc(
         }
     }
 
-    let texture_manager = ui.ctx().tex_manager();
-    for (_, eviction) in prior_cache.map.drain() {
-        if let ImageState::Loaded(eviction) = eviction.lock().unwrap().deref() {
-            texture_manager.write().free(*eviction);
-        }
-    }
-
     result
 }
 
@@ -151,10 +132,10 @@ fn download_image(
     Ok(response)
 }
 
-impl ImageCache {
+impl<'i> ImageCache<'i> {
     pub fn any_loading(&self) -> bool {
         self.map
             .values()
-            .any(|state| &ImageState::Loading == state.lock().unwrap().deref())
+            .any(|state| matches!(state.lock().unwrap().deref(), Loading))
     }
 }

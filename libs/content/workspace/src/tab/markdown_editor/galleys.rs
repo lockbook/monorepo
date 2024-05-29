@@ -16,12 +16,12 @@ use std::ops::{Deref, Index};
 use std::sync::Arc;
 
 #[derive(Default)]
-pub struct Galleys {
-    pub galleys: Vec<GalleyInfo>,
+pub struct Galleys<'i> {
+    pub galleys: Vec<GalleyInfo<'i>>,
 }
 
 #[derive(Debug)]
-pub struct GalleyInfo {
+pub struct GalleyInfo<'i> {
     pub range: (DocCharOffset, DocCharOffset),
     pub galley: Arc<Galley>,
     pub annotation: Option<Annotation>,
@@ -32,21 +32,21 @@ pub struct GalleyInfo {
 
     pub text_location: Pos2,
     pub galley_location: Rect,
-    pub image: Option<ImageInfo>,
+    pub image: Option<ImageInfo<'i>>,
 
     pub annotation_text_format: TextFormat,
 }
 
 #[derive(Debug)]
-pub struct ImageInfo {
+pub struct ImageInfo<'i> {
     pub location: Rect,
-    pub image_state: ImageState,
+    pub image_state: ImageState<'i>,
 }
 
-pub fn calc(
+pub fn calc<'i>(
     ast: &Ast, buffer: &SubBuffer, bounds: &Bounds, images: &ImageCache, appearance: &Appearance,
     hover_syntax_reveal_debounce_state: HoverSyntaxRevealDebounceState, ui: &mut Ui,
-) -> Galleys {
+) -> Galleys<'i> {
     let cursor_paragraphs = bounds
         .paragraphs
         .find_intersecting(buffer.cursor.selection, true);
@@ -192,15 +192,15 @@ pub fn calc(
     result
 }
 
-impl Index<usize> for Galleys {
-    type Output = GalleyInfo;
+impl<'i> Index<usize> for Galleys<'i> {
+    type Output = GalleyInfo<'i>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.galleys[index]
     }
 }
 
-impl Galleys {
+impl<'i> Galleys<'i> {
     pub fn is_empty(&self) -> bool {
         self.galleys.is_empty()
     }
@@ -309,7 +309,7 @@ pub fn annotation_offset(annotation: &Option<Annotation>, appearance: &Appearanc
     offset
 }
 
-impl GalleyInfo {
+impl<'i> GalleyInfo<'i> {
     pub fn from(
         mut job: LayoutJobInfo, images: &ImageCache, appearance: &Appearance, ui: &mut Ui,
     ) -> Self {
@@ -320,10 +320,12 @@ impl GalleyInfo {
         let image = if let Some(Annotation::Image(_, url, _)) = &job.annotation {
             if let Some(image_state) = images.map.get(url) {
                 let image_state = image_state.lock().unwrap().deref().clone();
-                let (location, _) = if let ImageState::Loaded(texture) = image_state {
-                    let [image_width, image_height] =
-                        ui.ctx().tex_manager().read().meta(texture).unwrap().size;
-                    let [image_width, image_height] = [image_width as f32, image_height as f32];
+                let (location, _) = if let ImageState::Loaded(image) = image_state {
+                    let sized_texture = image
+                        .load_for_size(ui.ctx(), ui.available_size())
+                        .expect("load image for size");
+                    let size = sized_texture.size().expect("get image size");
+                    let (image_width, image_height) = (size.x, size.y);
                     let width = f32::min(
                         ui.available_width() - appearance.image_padding() * 2.0,
                         image_width,
