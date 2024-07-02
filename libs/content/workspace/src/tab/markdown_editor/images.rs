@@ -1,7 +1,7 @@
 use crate::tab;
 use crate::tab::markdown_editor::ast::Ast;
 use crate::tab::markdown_editor::style::{InlineNode, MarkdownNode, Url};
-use egui::{ColorImage, TextureId, Ui};
+use egui::{ColorImage, Context, TextureId};
 use lb_rs::Uuid;
 use resvg::tiny_skia::Pixmap;
 use resvg::usvg::{self, Transform};
@@ -26,7 +26,7 @@ pub enum ImageState {
 
 pub fn calc(
     ast: &Ast, prior_cache: &ImageCache, client: &reqwest::blocking::Client, core: &lb_rs::Core,
-    file_id: Uuid, ui: &Ui,
+    file_id: Uuid, ctx: &Context,
 ) -> ImageCache {
     let mut result = ImageCache::default();
 
@@ -49,7 +49,7 @@ pub fn calc(
                 let image_state: Arc<Mutex<ImageState>> = Default::default();
                 let client = client.clone();
                 let core = core.clone();
-                let ctx = ui.ctx().clone();
+                let ctx = ctx.clone();
 
                 result.map.insert(url.clone(), image_state.clone());
 
@@ -137,7 +137,7 @@ pub fn calc(
         }
     }
 
-    let texture_manager = ui.ctx().tex_manager();
+    let texture_manager = ctx.tex_manager();
     for (_, eviction) in prior_cache.map.drain() {
         if let ImageState::Loaded(eviction) = eviction.lock().unwrap().deref() {
             texture_manager.write().free(*eviction);
