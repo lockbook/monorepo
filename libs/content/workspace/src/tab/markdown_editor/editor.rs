@@ -97,14 +97,6 @@ impl Editor {
         }
     }
 
-    pub fn draw(&mut self, ctx: &Context) -> EditorResponse {
-        let fill = if ctx.style().visuals.dark_mode { Color32::BLACK } else { Color32::WHITE };
-        egui::CentralPanel::default()
-            .frame(egui::Frame::default().fill(fill))
-            .show(ctx, |ui| self.scroll_ui(ui))
-            .inner
-    }
-
     // workspace invokes this
     pub fn scroll_ui(&mut self, ui: &mut Ui) -> EditorResponse {
         let touch_mode = matches!(ui.ctx().os(), OperatingSystem::Android | OperatingSystem::IOS);
@@ -164,9 +156,7 @@ impl Editor {
                 Frame::default()
                     .fill(fill)
                     .inner_margin(egui::Margin::symmetric(0.0, 15.0))
-                    .show(ui, |ui| {
-                        ui.vertical_centered(|ui| self.ui(ui, self.id, touch_mode, &events))
-                    })
+                    .show(ui, |ui| ui.vertical_centered(|ui| self.ui(ui, touch_mode, &events)))
             });
         self.ui_rect = sao.inner_rect;
 
@@ -198,9 +188,7 @@ impl Editor {
         resp
     }
 
-    fn ui(
-        &mut self, ui: &mut Ui, id: egui::Id, touch_mode: bool, events: &[Event],
-    ) -> EditorResponse {
+    fn ui(&mut self, ui: &mut Ui, touch_mode: bool, events: &[Event]) -> EditorResponse {
         self.debug.frame_start();
 
         // update theme
@@ -219,7 +207,7 @@ impl Editor {
 
         // process events
         let (text_updated, selection_updated) = if self.initialized {
-            if ui.memory(|m| m.has_focus(id))
+            if ui.memory(|m| m.has_focus(self.id))
                 || cfg!(target_os = "ios")
                 || cfg!(target_os = "android")
             {
@@ -239,7 +227,7 @@ impl Editor {
                 (false, false)
             }
         } else {
-            ui.memory_mut(|m| m.request_focus(id));
+            ui.memory_mut(|m| m.request_focus(self.id));
 
             // put the cursor at the first valid cursor position
             ui.ctx().push_markdown_event(Modification::Select {
@@ -302,6 +290,10 @@ impl Editor {
         );
         self.initialized = true;
 
+        let suggested_title = self.get_suggested_title();
+        let suggested_rename =
+            if suggested_title != prior_suggested_title { suggested_title } else { None };
+
         // repaint conditions
         let mut repaints = Vec::new();
         if self.images.any_loading() {
@@ -318,7 +310,7 @@ impl Editor {
 
         // draw
         self.draw_text(self.ui_rect.size(), ui, touch_mode);
-        if ui.memory(|m| m.has_focus(id)) && !cfg!(target_os = "ios") {
+        if ui.memory(|m| m.has_focus(self.id)) && !cfg!(target_os = "ios") {
             self.draw_cursor(ui, touch_mode);
         }
         if self.debug.draw_enabled {
@@ -340,10 +332,6 @@ impl Editor {
             let rect = Rect { min: cursor_end_line[0], max: cursor_end_line[1] };
             ui.scroll_to_rect(rect, None);
         }
-
-        let suggested_title = self.get_suggested_title();
-        let suggested_rename =
-            if suggested_title != prior_suggested_title { suggested_title } else { None };
 
         // set cursor style
         {
