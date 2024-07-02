@@ -215,10 +215,10 @@ impl Editor {
                 let (maybe_to_clipboard, maybe_opened_url, text_updated, selection_updated) =
                     self.process_events(events, &custom_events, touch_mode);
                 if let Some(to_clipboard) = maybe_to_clipboard {
-                    ui.output_mut(|o| o.copied_text = to_clipboard);
+                    ui.ctx().output_mut(|o| o.copied_text = to_clipboard);
                 }
                 if let Some(opened_url) = maybe_opened_url {
-                    ui.output_mut(|o| {
+                    ui.ctx().output_mut(|o| {
                         o.open_url = Some(egui::output::OpenUrl::new_tab(opened_url))
                     });
                 }
@@ -359,9 +359,11 @@ impl Editor {
                 .unwrap_or_default();
             let cmd_down = ui.input(|i| i.modifiers.command);
             if hovering_link && cmd_down {
-                ui.output_mut(|o| o.cursor_icon = egui::CursorIcon::PointingHand);
+                ui.ctx()
+                    .output_mut(|o| o.cursor_icon = egui::CursorIcon::PointingHand);
             } else if hovering_text {
-                ui.output_mut(|o| o.cursor_icon = egui::CursorIcon::Text);
+                ui.ctx()
+                    .output_mut(|o| o.cursor_icon = egui::CursorIcon::Text);
             }
         }
 
