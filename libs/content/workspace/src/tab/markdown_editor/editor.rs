@@ -417,7 +417,7 @@ impl Editor {
             touch_mode,
             &self.appearance,
             &mut self.pointer_state,
-            &mut self.core,
+            &self.core,
             self.file_id,
         );
         let (text_updated, maybe_to_clipboard, maybe_opened_url) = events::process(

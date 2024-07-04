@@ -20,7 +20,7 @@ use super::canonical::Region;
 pub fn combine(
     events: &[Event], custom_events: &[crate::Event], click_checker: impl ClickChecker + Copy,
     touch_mode: bool, appearance: &Appearance, pointer_state: &mut PointerState,
-    core: &mut lb_rs::Core, file_id: Uuid,
+    core: &lb_rs::Core, file_id: Uuid,
 ) -> Vec<Modification> {
     let canonical_egui_events = events.iter().filter_map(|e| {
         input::canonical::calc(
@@ -76,7 +76,7 @@ pub fn process(
 }
 
 fn handle_custom_event(
-    event: crate::Event, core: &mut lb_rs::Core, file_id: Uuid,
+    event: crate::Event, core: &lb_rs::Core, file_id: Uuid,
 ) -> Vec<Modification> {
     match event {
         crate::Event::Markdown(modification) => vec![modification],
