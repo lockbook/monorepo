@@ -20,6 +20,7 @@ pub enum Location {
 pub enum Bound {
     Char,
     Word,
+    Sentence,
     Line,
     Paragraph,
     Doc,

@@ -300,6 +300,8 @@ impl Editor {
             );
             self.bounds.paragraphs =
                 bounds::calc_paragraphs(&self.buffer.current, &self.bounds.ast);
+            self.bounds.sentences =
+                bounds::calc_sentences(&self.buffer.current, &self.bounds.paragraphs);
         }
         if text_updated || selection_updated || self.capture.mark_changes_processed() {
             self.bounds.text = bounds::calc_text(

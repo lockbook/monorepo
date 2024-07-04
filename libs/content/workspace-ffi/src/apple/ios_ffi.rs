@@ -425,7 +425,7 @@ pub unsafe extern "C" fn is_position_at_bound(
     let bound: Bound = match granularity {
         CTextGranularity::Character => Bound::Char,
         CTextGranularity::Word => Bound::Word,
-        CTextGranularity::Sentence => Bound::Paragraph, // note: sentence handled as paragraph
+        CTextGranularity::Sentence => Bound::Sentence,
         CTextGranularity::Paragraph => Bound::Paragraph,
         CTextGranularity::Line => Bound::Line,
         CTextGranularity::Document => Bound::Doc,
@@ -439,7 +439,10 @@ pub unsafe extern "C" fn is_position_at_bound(
             return true;
         }
     }
-    false
+
+    // no range: guess we're at the boundary (e.g. start of empty document considered a sentence boundary to trigger
+    // auto capitalization)
+    true
 }
 
 /// # Safety
@@ -461,7 +464,7 @@ pub unsafe extern "C" fn is_position_within_bound(
     let bound = match granularity {
         CTextGranularity::Character => Bound::Char,
         CTextGranularity::Word => Bound::Word,
-        CTextGranularity::Sentence => Bound::Paragraph, // note: sentence handled as paragraph
+        CTextGranularity::Sentence => Bound::Sentence,
         CTextGranularity::Paragraph => Bound::Paragraph,
         CTextGranularity::Line => Bound::Line,
         CTextGranularity::Document => Bound::Doc,
@@ -496,7 +499,7 @@ pub unsafe extern "C" fn bound_from_position(
     let bound = match granularity {
         CTextGranularity::Character => Bound::Char,
         CTextGranularity::Word => Bound::Word,
-        CTextGranularity::Sentence => Bound::Paragraph, // note: sentence handled as paragraph
+        CTextGranularity::Sentence => Bound::Sentence,
         CTextGranularity::Paragraph => Bound::Paragraph,
         CTextGranularity::Line => Bound::Line,
         CTextGranularity::Document => Bound::Doc,
@@ -526,7 +529,7 @@ pub unsafe extern "C" fn bound_at_position(
     let bound = match granularity {
         CTextGranularity::Character => Bound::Char,
         CTextGranularity::Word => Bound::Word,
-        CTextGranularity::Sentence => Bound::Paragraph, // note: sentence handled as paragraph
+        CTextGranularity::Sentence => Bound::Sentence,
         CTextGranularity::Paragraph => Bound::Paragraph,
         CTextGranularity::Line => Bound::Line,
         CTextGranularity::Document => Bound::Doc,

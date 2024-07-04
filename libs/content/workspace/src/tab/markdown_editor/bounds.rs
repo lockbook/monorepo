@@ -20,6 +20,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 pub type AstTextRanges = Vec<AstTextRange>;
 pub type Words = Vec<(DocCharOffset, DocCharOffset)>;
+pub type Sentences = Vec<(DocCharOffset, DocCharOffset)>;
 pub type Lines = Vec<(DocCharOffset, DocCharOffset)>;
 pub type Paragraphs = Vec<(DocCharOffset, DocCharOffset)>;
 pub type Text = Vec<(DocCharOffset, DocCharOffset)>;
@@ -33,6 +34,7 @@ pub struct Bounds {
     pub ast: AstTextRanges,
 
     pub words: Words,
+    pub sentences: Sentences,
     pub lines: Lines,
     pub paragraphs: Paragraphs,
 
@@ -82,6 +84,40 @@ pub fn calc_words(
 
                 prev_char_offset = char_offset;
                 prev_word = word;
+            }
+        }
+    }
+
+    result
+}
+
+pub fn calc_sentences(buffer: &SubBuffer, paragraphs: &Paragraphs) -> Sentences {
+    let mut result = vec![];
+
+    for (paragraph_start, paragraph_end) in paragraphs {
+        let paragraph_text = buffer[(*paragraph_start, *paragraph_end)].to_string();
+        for (sentence_start, sentence) in paragraph_text.split_sentence_bound_indices() {
+            let mut sentence_start = RelByteOffset(sentence_start);
+            let mut sentence_end = sentence_start + sentence.len();
+
+            // trim leading/trailing whitespace
+            loop {
+                let sentence_start_char = buffer
+                    .segs
+                    .offset_to_char(buffer.segs.offset_to_byte(*paragraph_start) + sentence_start);
+                let sentence_end_char = buffer
+                    .segs
+                    .offset_to_char(buffer.segs.offset_to_byte(*paragraph_start) + sentence_end);
+                let sentence_text = buffer[(sentence_start_char, sentence_end_char)].to_string();
+
+                if sentence_text.starts_with(|c: char| c.is_whitespace()) {
+                    sentence_start += 1;
+                } else if sentence_text.ends_with(|c: char| c.is_whitespace()) {
+                    sentence_end -= 1;
+                } else {
+                    result.push((sentence_start_char, sentence_end_char));
+                    break;
+                }
             }
         }
     }
@@ -374,6 +410,7 @@ impl DocCharOffset {
                 return self.char_bound(backwards, jump, &bounds.text);
             }
             Bound::Word => &bounds.words,
+            Bound::Sentence => &bounds.sentences,
             Bound::Line => &bounds.lines,
             Bound::Paragraph => &bounds.paragraphs,
             Bound::Doc => {
@@ -838,6 +875,7 @@ impl Editor {
     pub fn print_bounds(&self) {
         self.print_ast_bounds();
         self.print_words_bounds();
+        self.print_sentences_bounds();
         self.print_lines_bounds();
         self.print_paragraphs_bounds();
         self.print_text_bounds();
@@ -853,6 +891,10 @@ impl Editor {
 
     pub fn print_words_bounds(&self) {
         println!("words: {:?}", self.ranges_text(&self.bounds.words));
+    }
+
+    pub fn print_sentences_bounds(&self) {
+        println!("sentences: {:?}", self.ranges_text(&self.bounds.sentences));
     }
 
     pub fn print_lines_bounds(&self) {
