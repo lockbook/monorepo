@@ -1219,6 +1219,9 @@ class LBTokenizer: NSObject, UITextInputTokenizer {
         if result.start.pos == result.end.pos {
             return nil
         }
+//        if result.none {
+//            return nil
+//        }
         
         return LBTextRange(c: result)
     }

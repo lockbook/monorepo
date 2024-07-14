@@ -3,7 +3,7 @@ use crate::{
     UITextSelectionRects, WgpuWorkspace,
 };
 use egui::{Event, Key, Modifiers, PointerButton, Pos2, TouchDeviceId, TouchId, TouchPhase};
-use egui_editor::input::canonical::{Bound, Increment, Location, Modification, Offset, Region};
+use egui_editor::input::canonical::{Bound, Increment, Modification, Offset, Region};
 use egui_editor::input::cursor::Cursor;
 use egui_editor::input::mutation;
 use egui_editor::offset_types::{DocCharOffset, RangeExt};
@@ -472,7 +472,10 @@ pub unsafe extern "C" fn is_position_at_bound(
     let bound: Bound = match granularity {
         CTextGranularity::Character => Bound::Char,
         CTextGranularity::Word => Bound::Word,
-        CTextGranularity::Sentence => Bound::Paragraph, // note: sentence handled as paragraph
+        CTextGranularity::Sentence => {
+            println!("// note: sentence handled as paragraph");
+            Bound::Paragraph
+        } // note: sentence handled as paragraph
         CTextGranularity::Paragraph => Bound::Paragraph,
         CTextGranularity::Line => Bound::Line,
         CTextGranularity::Document => Bound::Doc,
@@ -512,7 +515,10 @@ pub unsafe extern "C" fn is_position_within_bound(
     let bound = match granularity {
         CTextGranularity::Character => Bound::Char,
         CTextGranularity::Word => Bound::Word,
-        CTextGranularity::Sentence => Bound::Paragraph, // note: sentence handled as paragraph
+        CTextGranularity::Sentence => {
+            println!("// note: sentence handled as paragraph");
+            Bound::Paragraph
+        } // note: sentence handled as paragraph
         CTextGranularity::Paragraph => Bound::Paragraph,
         CTextGranularity::Line => Bound::Line,
         CTextGranularity::Document => Bound::Doc,
@@ -551,7 +557,10 @@ pub unsafe extern "C" fn bound_from_position(
     let bound = match granularity {
         CTextGranularity::Character => Bound::Char,
         CTextGranularity::Word => Bound::Word,
-        CTextGranularity::Sentence => Bound::Paragraph, // note: sentence handled as paragraph
+        CTextGranularity::Sentence => {
+            println!("// note: sentence handled as paragraph");
+            Bound::Paragraph
+        } // note: sentence handled as paragraph
         CTextGranularity::Paragraph => Bound::Paragraph,
         CTextGranularity::Line => Bound::Line,
         CTextGranularity::Document => Bound::Doc,
@@ -561,7 +570,7 @@ pub unsafe extern "C" fn bound_from_position(
     let result = cursor.selection.1 .0;
     println!("* bound_from_position({:?}, {:?}, {:?}) -> {:?}", pos.pos, bound, backwards, result);
 
-    CTextPosition { none: false, pos: cursor.selection.1 .0 }
+    CTextPosition { none: false, pos: result }
 }
 
 /// # Safety
@@ -578,32 +587,40 @@ pub unsafe extern "C" fn bound_at_position(
         None => return CTextRange::default(),
     };
 
-    let buffer = &markdown.editor.buffer.current;
-    let galleys = &markdown.editor.galleys;
-
     let bound = match granularity {
         CTextGranularity::Character => Bound::Char,
         CTextGranularity::Word => Bound::Word,
-        CTextGranularity::Sentence => Bound::Paragraph, // note: sentence handled as paragraph
+        CTextGranularity::Sentence => {
+            println!("// note: sentence handled as paragraph");
+            Bound::Paragraph
+        } // note: sentence handled as paragraph
         CTextGranularity::Paragraph => Bound::Paragraph,
-        CTextGranularity::Line => Bound::Line,
+        CTextGranularity::Line => {
+            // println!("* bound_at_position({:?}, {:?}, {:?}) -> none", pos, Bound::Line, backwards);
+            // return CTextRange { none: true, ..Default::default() };
+            Bound::Line
+        }
         CTextGranularity::Document => Bound::Doc,
     };
-    let cursor = mutation::region_to_cursor(
-        Region::BoundAt { bound, location: Location::DocCharOffset(pos.pos.into()), backwards },
-        buffer.cursor,
-        buffer,
-        galleys,
-        &markdown.editor.bounds,
-    );
 
-    let result = (cursor.selection.start().0, cursor.selection.end().0);
-    println!("* bound_at_position({:?}, {:?}, {:?}) -> {:?}", pos.pos, bound, backwards, result);
+    let pos = DocCharOffset(pos.pos.into());
+    let next = pos.advance_to_next_bound(bound, backwards, &markdown.editor.bounds);
+    let prev = next.advance_to_next_bound(bound, !backwards, &markdown.editor.bounds);
+
+    if pos == next {
+        println!("* bound_at_position({:?}, {:?}, {:?}) -> none", pos, bound, backwards);
+        return CTextRange { none: true, ..Default::default() };
+    }
+
+    let result = (next.0, prev.0);
+    let result = (result.start(), result.end());
+
+    println!("* bound_at_position({:?}, {:?}, {:?}) -> {:?}", pos, bound, backwards, result);
 
     CTextRange {
         none: false,
-        start: CTextPosition { none: false, pos: cursor.selection.start().0 },
-        end: CTextPosition { none: false, pos: cursor.selection.end().0 },
+        start: CTextPosition { none: false, pos: result.start() },
+        end: CTextPosition { none: false, pos: result.end() },
     }
 }
 
@@ -792,7 +809,7 @@ pub unsafe extern "C" fn selection_rects(
         cont_start = new_end.selection.end();
     }
 
-    println!("  selection_rects({:?}) -> ({:?} rects)", range, selection_rects.len());
+    println!("> selection_rects({:?}) -> ({:?} rects)", range, selection_rects.len());
 
     UITextSelectionRects {
         size: selection_rects.len() as i32,
