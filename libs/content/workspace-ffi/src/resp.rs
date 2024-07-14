@@ -129,7 +129,7 @@ impl Default for UITextSelectionRects {
 
 /// https://developer.apple.com/documentation/uikit/uitextrange
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct CTextRange {
     /// used to represent a non-existent state of this struct
     pub none: bool,
@@ -157,7 +157,7 @@ impl From<Option<(DocCharOffset, DocCharOffset)>> for CTextRange {
 }
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct CTextPosition {
     /// used to represent a non-existent state of this struct
     pub none: bool,
@@ -220,7 +220,7 @@ impl Into<Bound> for CTextGranularity {
 }
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct CRect {
     pub min_x: f64,
     pub min_y: f64,
@@ -252,8 +252,14 @@ impl From<CTextPosition> for Location {
     }
 }
 
+impl From<CTextPosition> for DocCharOffset {
+    fn from(value: CTextPosition) -> Self {
+        DocCharOffset(value.pos.into())
+    }
+}
+
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct CUuid([u8; 16]);
 
 impl From<Uuid> for CUuid {

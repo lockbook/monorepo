@@ -309,7 +309,7 @@ pub fn calc_links(buffer: &SubBuffer, text: &Text, ast: &Ast) -> PlainTextLinks 
 }
 
 impl Bounds {
-    /// Returns the next range before char_offset that doesn't have char_offset in it.
+    /// Returns the last range with start < char_offset <= end, or None if there's no such range.
     // todo: binary search
     fn range_before(
         ranges: &[(DocCharOffset, DocCharOffset)], char_offset: DocCharOffset,
@@ -322,7 +322,7 @@ impl Bounds {
             .map(|(idx, _)| idx)
     }
 
-    /// Returns the next range after char_offset that doesn't have char_offset in it.
+    /// Returns the first range with start <= char_offset < end, or None if there's no such range.
     // todo: binary search
     fn range_after(
         ranges: &[(DocCharOffset, DocCharOffset)], char_offset: DocCharOffset,
@@ -365,8 +365,7 @@ pub enum BoundCase {
     ///
     /// (ra|nge)
     InsideRange { range: (DocCharOffset, DocCharOffset) },
-    /// The position is at the start/end of an empty range. The ranges before and after may be touching i.e. the
-    /// position may additionally be at the end of the range before and/or the start of the range after.
+    /// The position is at the start/end of an empty range.
     ///
     /// (|)
     AtEmptyRange {
@@ -567,6 +566,7 @@ impl DocCharOffset {
         }
     }
 
+    // todo: broken when first/last range are empty (did those ranges need to be differentiated anyway?)
     pub fn bound_case(self, ranges: &[(DocCharOffset, DocCharOffset)]) -> BoundCase {
         let range_before = Bounds::range_before(ranges, self);
         let range_after = Bounds::range_after(ranges, self);
