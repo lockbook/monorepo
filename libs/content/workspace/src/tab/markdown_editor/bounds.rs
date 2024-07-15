@@ -167,39 +167,26 @@ pub fn calc_lines(galleys: &Galleys, ast: &AstTextRanges, text: &Text) -> Lines 
         }
     }
 
-    result
+    // ios testing hack: break lines every 5 characters
+    let mut new_result = vec![];
+    for (start, end) in result {
+        let mut start = start;
+        while end - start > 5 {
+            new_result.push((start, start + 5));
+            start += 5;
+        }
+        new_result.push((start, end));
+    }
+
+    new_result
 }
 
 pub fn calc_paragraphs(buffer: &SubBuffer, ast: &AstTextRanges) -> Paragraphs {
     let mut result = vec![];
 
-    let captured_newlines = {
-        let mut captured_newlines = HashSet::new();
-        for text_range in ast {
-            match text_range.range_type {
-                AstTextRangeType::Head | AstTextRangeType::Tail => {
-                    // newlines in syntax sequences don't break paragraphs
-                    let range_start_byte = buffer.segs.offset_to_byte(text_range.range.0);
-                    captured_newlines.extend(buffer[text_range.range].match_indices('\n').map(
-                        |(idx, _)| {
-                            buffer
-                                .segs
-                                .offset_to_char(range_start_byte + RelByteOffset(idx))
-                        },
-                    ))
-                }
-                AstTextRangeType::Text => {}
-            }
-        }
-        captured_newlines
-    };
-
     let mut prev_char_offset = DocCharOffset(0);
     for (byte_offset, _) in (buffer.text.to_string() + "\n").match_indices('\n') {
         let char_offset = buffer.segs.offset_to_char(DocByteOffset(byte_offset));
-        if captured_newlines.contains(&char_offset) {
-            continue;
-        }
 
         // note: paragraphs can be empty
         result.push((prev_char_offset, char_offset));
