@@ -8,9 +8,8 @@ name = "workspace_rs"
 
 [dependencies]
 bezier-rs = "0.2.0"
-egui = "0.26.2"
-egui_extras = { version = "0.26.2", features = ["image"] }
-epaint = "0.26.2"
+egui = "0.28.1"
+egui_extras = { version = "0.28.1", features = ["image"] }
 glam = "0.22.0"
 image = "0.24"
 lb-fonts = { git = "https://github.com/lockbook/lb-fonts" }

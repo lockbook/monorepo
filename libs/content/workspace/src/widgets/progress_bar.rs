@@ -28,13 +28,14 @@ impl ProgressBar {
             let stroke = egui::Stroke::NONE;
 
             // Background (the full line).
-            ui.painter().add(epaint::RectShape {
+            ui.painter().add(egui::epaint::RectShape {
                 rect,
                 rounding,
                 fill: ui.visuals().extreme_bg_color,
                 stroke,
                 fill_texture_id: egui::TextureId::default(),
                 uv: egui::Rect::ZERO,
+                blur_width: 0.0,
             });
 
             let width = rect.max.x - rect.min.x;
@@ -42,13 +43,14 @@ impl ProgressBar {
             progress_rect.max.x = progress_rect.min.x + width * self.percent;
 
             // Filled portion.
-            ui.painter().add(epaint::RectShape {
+            ui.painter().add(egui::epaint::RectShape {
                 rect: progress_rect,
                 rounding,
                 fill: ui.visuals().widgets.active.bg_fill,
                 stroke,
                 fill_texture_id: egui::TextureId::default(),
                 uv: egui::Rect::ZERO,
+                blur_width: 0.0,
             });
         }
 

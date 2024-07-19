@@ -38,7 +38,11 @@ fn handle(
             let factor = (delta.y / resistence).exp();
             app.raw_input.events.push(egui::Event::Zoom(factor))
         } else {
-            app.raw_input.events.push(egui::Event::Scroll(delta))
+            app.raw_input.events.push(egui::Event::MouseWheel {
+                unit: egui::MouseWheelUnit::Point,
+                delta,
+                modifiers: egui::Modifiers::NONE,
+            })
         }
     } else {
         // button event

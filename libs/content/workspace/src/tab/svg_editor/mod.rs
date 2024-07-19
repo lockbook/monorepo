@@ -14,6 +14,7 @@ use self::history::History;
 use self::zoom::handle_zoom_input;
 use crate::tab::svg_editor::toolbar::Toolbar;
 use crate::theme::palette::ThemePalette;
+use egui::epaint;
 pub use eraser::Eraser;
 pub use history::DeleteElement;
 pub use history::Event;
@@ -170,6 +171,7 @@ impl SVGEditor {
             }
         });
 
+        let mut shapes = vec![];
         for (_, el) in self.buffer.elements.iter_mut() {
             if let parser::Element::Path(path) = el {
                 if path.data.is_empty() || path.visibility.eq(&usvg::Visibility::Hidden) {
@@ -181,33 +183,49 @@ impl SVGEditor {
                     .linear_multiply(path.opacity);
 
                 if path.data.is_point() {
-                    let origin = &path.data.manipulator_groups()[0];
-                    let origin = egui::pos2(origin.anchor.x as f32, origin.anchor.y as f32);
-                    let circle = epaint::CircleShape::filled(
-                        origin,
-                        stroke.width * self.buffer.master_transform.sx / 2.0,
+                    // let origin = &path.data.manipulator_groups()[0];
+                    // let origin = egui::pos2(origin.anchor.x as f32, origin.anchor.y as f32);
+                    // let circle = epaint::CircleShape::filled(
+                    //     origin,
+                    //     stroke.width * self.buffer.master_transform.sx / 2.0,
+                    //     alpha_stroke_color,
+                    // );
+                    // painter.add(circle);
+                } else {
+                    let stroke = epaint::PathStroke::new(
+                        stroke.width * self.buffer.master_transform.sx,
                         alpha_stroke_color,
                     );
-                    painter.add(circle);
-                } else {
-                    let points = path
-                        .data
-                        .manipulator_groups()
-                        .iter()
-                        .map(|m| egui::pos2(m.anchor.x as f32, m.anchor.y as f32))
-                        .collect();
+                    let mut points = vec![];
+                    for m in path.data.iter() {
+                        let cubic = m.to_cubic();
+                        let mut flattened_curve = epaint::CubicBezierShape::from_points_stroke(
+                            [
+                                egui::pos2(cubic.start().x as f32, m.start().y as f32),
+                                egui::pos2(
+                                    m.handle_start().unwrap_or_default().x as f32,
+                                    m.handle_start().unwrap_or_default().y as f32,
+                                ),
+                                egui::pos2(
+                                    m.handle_end().unwrap_or_default().x as f32,
+                                    m.handle_end().unwrap_or_default().y as f32,
+                                ),
+                                egui::pos2(m.end().x as f32, m.end().y as f32),
+                            ],
+                            false,
+                            egui::Color32::TRANSPARENT,
+                            stroke.clone(),
+                        )
+                        .flatten(Some(1.0));
+                        points.append(&mut flattened_curve);
+                    }
 
-                    let epath = egui::epaint::PathShape::line(
-                        points,
-                        egui::Stroke {
-                            width: stroke.width * self.buffer.master_transform.sx,
-                            color: alpha_stroke_color,
-                        },
-                    );
-                    painter.add(epath);
+                    let epath = egui::Shape::line(points, stroke);
+                    shapes.push(epath);
                 };
             }
         }
+        painter.extend(shapes);
     }
 }
 

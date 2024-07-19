@@ -1,5 +1,4 @@
-use egui::{self, TextStyle};
-use epaint::{self, Color32};
+use egui::{self, epaint, Color32, TextStyle};
 
 pub struct ButtonGroup<T: Copy + PartialEq> {
     value: Option<ToggleValue<T>>,
@@ -64,6 +63,7 @@ impl<T: Copy + PartialEq> ButtonGroup<T> {
                 stroke: ui.visuals().widgets.noninteractive.fg_stroke,
                 fill_texture_id: egui::TextureId::default(),
                 uv: egui::Rect::ZERO,
+                blur_width: 0.0,
             },
         );
 
@@ -125,15 +125,15 @@ impl<T: Copy + PartialEq> ButtonGroup<T> {
                         txt = txt.color(Color32::WHITE);
                     }
 
-                    let text = txt.into_galley(ui, Some(false), wrap_width, TextStyle::Body);
+                    let text = txt.into_galley(ui, None, wrap_width, TextStyle::Body);
                     let text_pos = rect.center() - text.size() / 2.0;
 
                     ui.painter().galley(text_pos, text, text_color);
                 }
                 ButtonContent::Icon(wtxt) => {
-                    let text =
-                        wtxt.clone()
-                            .into_galley(ui, Some(false), wrap_width, TextStyle::Body);
+                    let text = wtxt
+                        .clone()
+                        .into_galley(ui, None, wrap_width, TextStyle::Body);
                     let text_pos = egui::pos2(
                         rect.center().x - text.size().x / 2.0,
                         rect.center().y - text.size().y / 4.0,
@@ -200,11 +200,11 @@ impl ButtonContent {
         match self {
             ButtonContent::Text(wtxt) => wtxt
                 .clone()
-                .into_galley(ui, Some(false), wrap_width, TextStyle::Body)
+                .into_galley(ui, None, wrap_width, TextStyle::Body)
                 .size(),
             ButtonContent::Icon(wtxt) => wtxt
                 .clone()
-                .into_galley(ui, Some(false), wrap_width, TextStyle::Body)
+                .into_galley(ui, None, wrap_width, TextStyle::Body)
                 .size(),
             //ButtonContent::Widget { size, .. } => *size,
         }

@@ -53,7 +53,7 @@ impl super::AccountScreen {
                         let text = text.color(ui.visuals().text_color().gamma_multiply(0.8));
                         let galley = text.into_galley(
                             ui,
-                            Some(false),
+                            None,
                             ui.available_width(),
                             egui::TextStyle::Small,
                         );

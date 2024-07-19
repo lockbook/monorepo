@@ -800,7 +800,7 @@ fn tab_label(ui: &mut egui::Ui, t: &mut Tab, is_active: bool) -> Option<TabLabel
     let wrap_width = ui.available_width();
 
     let text: egui::WidgetText = (&t.name).into();
-    let text = text.into_galley(ui, Some(false), wrap_width, egui::TextStyle::Body);
+    let text = text.into_galley(ui, None, wrap_width, egui::TextStyle::Body);
 
     let x_icon = Icon::CLOSE.size(16.0);
 
@@ -883,7 +883,7 @@ fn tab_label(ui: &mut egui::Ui, t: &mut Tab, is_active: bool) -> Option<TabLabel
             );
 
             let icon: egui::WidgetText = (&x_icon).into();
-            let icon = icon.into_galley(ui, Some(false), wrap_width, egui::TextStyle::Body);
+            let icon = icon.into_galley(ui, None, wrap_width, egui::TextStyle::Body);
 
             ui.painter().galley(icon_draw_pos, icon, text_color);
 

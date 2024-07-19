@@ -132,7 +132,7 @@ impl Icon {
             let icon_pos = egui::pos2(rect.min.x + padding.x, rect.center().y - self.size / 2.0);
 
             let icon: egui::WidgetText = self.into();
-            let icon = icon.into_galley(ui, Some(false), wrap_width, egui::TextStyle::Body);
+            let icon = icon.into_galley(ui, None, wrap_width, egui::TextStyle::Body);
 
             ui.painter().galley(icon_pos, icon, text_color);
         }

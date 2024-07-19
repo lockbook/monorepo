@@ -66,7 +66,7 @@ impl<'a> Button<'a> {
         let icon_text_style = text_style.clone();
         let maybe_icon_galley = self.icon.map(|icon| {
             let icon: egui::WidgetText = icon.into();
-            let galley = icon.into_galley(ui, Some(false), wrap_width, icon_text_style);
+            let galley = icon.into_galley(ui, None, wrap_width, icon_text_style);
             width += galley.size().x;
             if self.text.is_some() {
                 width += padding.x / 2.;
@@ -76,7 +76,7 @@ impl<'a> Button<'a> {
 
         let maybe_text_galley = self.text.map(|text| {
             let text: egui::WidgetText = text.into();
-            let galley = text.into_galley(ui, Some(false), wrap_width, text_style);
+            let galley = text.into_galley(ui, None, wrap_width, text_style);
             width += galley.size().x;
             galley
         });
@@ -101,13 +101,14 @@ impl<'a> Button<'a> {
                 self.default_fill.unwrap_or(text_visuals.bg_fill)
             };
 
-            ui.painter().add(epaint::RectShape {
+            ui.painter().add(egui::epaint::RectShape {
                 rect,
                 rounding: self.rounding,
                 fill: if self.frame { bg_fill } else { egui::Color32::TRANSPARENT },
                 stroke: self.stroke,
                 fill_texture_id: egui::TextureId::default(),
                 uv: egui::Rect::ZERO,
+                blur_width: 0.0,
             });
 
             let mut text_pos =
