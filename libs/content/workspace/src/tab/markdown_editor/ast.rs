@@ -86,7 +86,6 @@ impl Ast {
     fn push_children(&mut self, current_idx: usize, iter: &mut OffsetIter, buffer: &SubBuffer) {
         let mut skipped = 0;
         while let Some((event, range)) = iter.next() {
-            println!("Event: {:?}, Range: {:?}", event, range);
             let range = buffer
                 .segs
                 .range_to_char((range.start.into(), range.end.into()));
