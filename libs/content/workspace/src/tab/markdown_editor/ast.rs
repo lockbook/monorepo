@@ -524,7 +524,7 @@ impl AstTextRange {
             .clone()
     }
 
-    pub fn annotation(&self, ast: &Ast) -> Option<Annotation> {
+    pub fn annotation(&self, ast: &Ast, buffer: &SubBuffer) -> Option<Annotation> {
         match self.node(ast) {
             MarkdownNode::Block(BlockNode::Heading(HeadingLevel::H1)) => {
                 Some(Annotation::HeadingRule)
@@ -536,6 +536,18 @@ impl AstTextRange {
                 Some(Annotation::Item(item_type, indent_level))
             }
             MarkdownNode::Block(BlockNode::Rule) => Some(Annotation::Rule),
+            MarkdownNode::Block(BlockNode::Code) => {
+                let text = &buffer[self.range];
+                if text.starts_with("```math") && text.ends_with("```") {
+                    let link_type = LinkType::Reference;
+                    let url =
+                        format!("math://{:?}..{:?}", self.range.start() + 7, self.range.end() - 3); // url uniquely identifies texture (see images.rs)
+                    let title = &text[7..text.len() - 3];
+                    Some(Annotation::Image(link_type, url.into(), title.into()))
+                } else {
+                    None
+                }
+            }
             _ => None,
         }
     }

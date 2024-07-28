@@ -67,9 +67,14 @@ pub fn calc(
                                     .ok()
                             }
                         };
+                        let maybe_math =
+                            if url.starts_with("math://") { Some(title.clone()) } else { None }; // AstTextRange::annotation generates this url and title
 
                         let image_bytes = if let Some(id) = maybe_lb_id {
                             core.read_document(id).map_err(|e| e.to_string())?
+                        } else if let Some(math) = maybe_math {
+                            // todo: turn into an image
+                            todo!()
                         } else {
                             download_image(&client, &url).map_err(|e| e.to_string())?
                         };

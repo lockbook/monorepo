@@ -23,4 +23,5 @@ pub enum Annotation {
     Image(LinkType, Url, Title),
     HeadingRule,
     Rule,
+    Latex(String),
 }
