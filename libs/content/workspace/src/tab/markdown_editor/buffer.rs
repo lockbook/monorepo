@@ -26,6 +26,17 @@ use unicode_segmentation::UnicodeSegmentation;
 // outside the editor while the editor is open. This is accomplished by turning the outside changes into operations
 // and applying them in a single frame, which adjusts the cursor position accordingly.
 
+// In this vision for buffer, it's a widget in a graph of widgets that comprise the editor. Each widget has an inbox of
+// operations that are the sole way to mutate its state and which conform to its own custom operation definition.
+pub enum BufferOp {
+    Select { range: (DocCharOffset, DocCharOffset) },
+    Replace { range: (DocCharOffset, DocCharOffset), text: String },
+}
+
+pub struct BufferV2 {
+    pub inbox: VecDeque<BufferOp>,
+}
+
 static MAX_UNDOS: usize = 100; // todo: make this much larger and measure performance impact
 
 /// don't type text for this long, and the text before and after are considered separate undo events
