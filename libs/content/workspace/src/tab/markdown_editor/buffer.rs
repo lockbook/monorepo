@@ -12,6 +12,20 @@ use std::ops::{Index, Range};
 use std::time::{Duration, Instant};
 use unicode_segmentation::UnicodeSegmentation;
 
+// This file contains logic for representing and manipulating the editor's text buffer.
+// Concerns include:
+// * Preserving intent of multiple changes applied in one frame: Operations like changing a bulleted list item to a
+// numbered list item are composed of multiple changes that reference specific numerical character offsets. As those
+// changes are applied, the subsequent changes must be adjusted to account for the changes that precede them,
+// preserving the intent of the user/system that made those changes in the context of the editor's previous-frame
+// state. This is a basic form of 'OT'; for more, see https://en.wikipedia.org/wiki/Operational_transformation#Basics.
+// * Undo/redo functionality: Operations need to be remembered so they can be un-applied or re-applied. They need to be
+// remembered in the grouping of which frame they were applied in so that operational transformations can be applied.
+// The unit of undo/redo is also affected by the timing and type of changes for the best UX.
+// * Collaborative editing: OT logic here is leveraged to preserve the cursor position when document changes are made
+// outside the editor while the editor is open. This is accomplished by turning the outside changes into operations
+// and applying them in a single frame, which adjusts the cursor position accordingly.
+
 static MAX_UNDOS: usize = 100; // todo: make this much larger and measure performance impact
 
 /// don't type text for this long, and the text before and after are considered separate undo events
