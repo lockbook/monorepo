@@ -4,7 +4,7 @@ use std::{
     collections::VecDeque,
     time::{Duration, Instant},
 };
-use tracing::{event, span, Level};
+use tracing::{event, instrument, Level};
 
 use crate::{tab::svg_editor::util::get_current_touch_id, theme::palette::ThemePalette};
 
@@ -37,6 +37,7 @@ impl Pen {
         }
     }
 
+    #[instrument(level="trace", skip_all, fields(frame = ui.ctx().frame_nr()))]
     pub fn handle_input(
         &mut self, ui: &mut egui::Ui, inner_rect: egui::Rect, buffer: &mut parser::Buffer,
         history: &mut History,
@@ -58,14 +59,12 @@ impl Pen {
         }
 
         for event in self.setup_events(ui, inner_rect) {
-            let span = span!(Level::TRACE, "building path", frame = ui.ctx().frame_nr());
-            let _ = span.enter();
             match event {
                 PathEvent::Draw(payload, id) => {
                     // for some reason in ipad there are  two draw events on the same pos which results in a knot.
                     if let Some(last_pos) = self.path_builder.original_points.last() {
                         if last_pos.eq(&payload.pos) && self.path_builder.path.len() > 1 {
-                            event!(Level::DEBUG, ?payload.pos, "draw event canceled because it's pos is equal to the last pos on the path");
+                            event!(Level::TRACE, ?payload.pos, "draw event canceled because it's pos is equal to the last pos on the path");
                             return;
                         }
                     }

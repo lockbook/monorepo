@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use tracing::instrument;
+
 use super::history::History;
 use super::{util::pointer_intersects_element, Buffer, DeleteElement};
 
@@ -30,6 +32,7 @@ impl Eraser {
         }
     }
 
+    #[instrument(level="trace", skip_all, fields(frame = ui.ctx().frame_nr()))]
     pub fn handle_input(
         &mut self, ui: &mut egui::Ui, painter: &egui::Painter, inner_rect: egui::Rect,
         buffer: &mut Buffer, history: &mut History,
