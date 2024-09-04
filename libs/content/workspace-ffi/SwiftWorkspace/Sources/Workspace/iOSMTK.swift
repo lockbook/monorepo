@@ -5,6 +5,7 @@ import Bridge
 import SwiftUI
 import MobileCoreServices
 import UniformTypeIdentifiers
+import Foundation
 
 import GameController
 
@@ -52,33 +53,33 @@ public class iOSMTKTextInputWrapper: UIView, UITextInput, UIDropInteractionDeleg
         }
 
         self.clipsToBounds = true
-        self.isUserInteractionEnabled = true
+//        self.isUserInteractionEnabled = true
 
         // ipad trackpad support
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(self.handleTrackpadScroll(_:)))
-        pan.allowedScrollTypesMask = .all
-        pan.maximumNumberOfTouches  = 0
-        self.addGestureRecognizer(pan)
+//        let pan = UIPanGestureRecognizer(target: self, action: #selector(self.handleTrackpadScroll(_:)))
+//        pan.allowedScrollTypesMask = .all
+//        pan.maximumNumberOfTouches  = 0
+//        self.addGestureRecognizer(pan)
 
         // selection support
         textInteraction.textInput = self
         self.addInteraction(textInteraction)
 
-        for gestureRecognizer in textInteraction.gesturesForFailureRequirements {
-            let gestureName = gestureRecognizer.name?.lowercased()
-
-            if gestureName?.contains("tap") ?? false {
-                gestureRecognizer.cancelsTouchesInView = false
-            }
-        }
+//        for gestureRecognizer in textInteraction.gesturesForFailureRequirements {
+//            let gestureName = gestureRecognizer.name?.lowercased()
+//
+//            if gestureName?.contains("tap") ?? false {
+//                gestureRecognizer.cancelsTouchesInView = false
+//            }
+//        }
         
-        for gesture in gestureRecognizers ?? [] {
-            let gestureName = gesture.name?.lowercased()
-            
-            if gestureName?.contains("interactiverefinement") ?? false {
-                gesture.addTarget(self, action: #selector(longPressGestureStateChanged(_:)))
-            }
-        }
+//        for gesture in gestureRecognizers ?? [] {
+//            let gestureName = gesture.name?.lowercased()
+//            
+//            if gestureName?.contains("interactiverefinement") ?? false {
+//                gesture.addTarget(self, action: #selector(longPressGestureStateChanged(_:)))
+//            }
+//        }
         
         // drop support
         let dropInteraction = UIDropInteraction(delegate: self)
@@ -891,7 +892,7 @@ public class iOSMTK: MTKView, MTKViewDelegate {
         ignoreSelectionUpdate = true
         ignoreTextUpdate = true
         
-        self.isPaused = true
+//        self.isPaused = true
         self.enableSetNeedsDisplay = false
         
         self.draw(in: self)
@@ -901,6 +902,9 @@ public class iOSMTK: MTKView, MTKViewDelegate {
     }
     
     public func draw(in view: MTKView) {
+        print("draw enter")
+        printTime()
+            
         if tabSwitchTask != nil {
             tabSwitchTask!()
             tabSwitchTask = nil
@@ -1009,20 +1013,22 @@ public class iOSMTK: MTKView, MTKViewDelegate {
             }
         }
 
-        redrawTask?.cancel()
-        self.isPaused = output.redraw_in > 50
-        if self.isPaused {
-            let redrawIn = UInt64(truncatingIfNeeded: output.redraw_in)
-            let redrawInInterval = DispatchTimeInterval.milliseconds(Int(truncatingIfNeeded: min(500, redrawIn)));
-
-            let newRedrawTask = DispatchWorkItem {
-                self.drawImmediately()
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + redrawInInterval, execute: newRedrawTask)
-            redrawTask = newRedrawTask
-        }
-        
-        self.enableSetNeedsDisplay = self.isPaused
+//        redrawTask?.cancel()
+//        self.isPaused = output.redraw_in > 50
+//        if self.isPaused {
+//            let redrawIn = UInt64(truncatingIfNeeded: output.redraw_in)
+//            let redrawInInterval = DispatchTimeInterval.milliseconds(Int(truncatingIfNeeded: min(500, redrawIn)));
+//
+//            let newRedrawTask = DispatchWorkItem {
+//                self.drawImmediately()
+//            }
+//            DispatchQueue.main.asyncAfter(deadline: .now() + redrawInInterval, execute: newRedrawTask)
+//            redrawTask = newRedrawTask
+//        }
+//        
+//        self.enableSetNeedsDisplay = self.isPaused
+        print("draw exit")
+        printTime()
     }
 
     override public func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -1055,10 +1061,24 @@ public class iOSMTK: MTKView, MTKViewDelegate {
                 let force = touch.force != 0 ? touch.force / touch.maximumPossibleForce : 0
                 
                 touches_moved(wsHandle, value, Float(location.x), Float(location.y), Float(force))
-            }
-        }
+             }
+            let location = touch.location(in: self)
+            let force = touch.force != 0 ? touch.force / touch.maximumPossibleForce : 0
 
+            touches_moved(wsHandle, value, Float(location.x), Float(location.y), Float(force))
+
+            for touch in event!.predictedTouches(for: touch)! {
+                let location = touch.location(in: self)
+                let force = touch.force != 0 ? touch.force / touch.maximumPossibleForce : 0
+                
+                touches_moved(wsHandle, value, Float(location.x), Float(location.y), Float(force))
+             }
+            
+        }
         self.setNeedsDisplay(self.frame)
+        print("set need display")
+        printTime()
+
     }
 
     public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -1173,6 +1193,20 @@ public class iOSMTK: MTKView, MTKViewDelegate {
 
     public override var canBecomeFocused: Bool {
         return true
+    }
+    
+    func printTime(){
+        // Step 1: Get the current date and time
+        let now = Date()
+
+        // Step 2: Create and configure a DateFormatter
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ"
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC") // Set the formatter's timezone to UTC
+
+        // Step 3: Format the current date and print it
+        let formattedDateString = dateFormatter.string(from: now)
+        print(formattedDateString)
     }
 }
 

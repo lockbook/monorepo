@@ -25,13 +25,13 @@ pub fn init(config: &Config) -> LbResult<()> {
                     .with_filter(filter::filter_fn(|metadata| {
                         metadata.target().starts_with("lb_rs")
                             || metadata.target().starts_with("dbrs")
-                            || metadata.target().starts_with("workspace")
                     })),
             )
             .with(
                 fmt::Layer::new()
                     .pretty()
                     .with_target(false)
+                    .with_span_events(FmtSpan::ACTIVE)
                     .with_filter(filter::filter_fn(|metadata| {
                         metadata.target().starts_with("workspace")
                             || metadata.target().starts_with("lb_fs")

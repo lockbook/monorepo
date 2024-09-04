@@ -25,6 +25,7 @@ pub use pen::Pen;
 use renderer::Renderer;
 use resvg::usvg::ImageKind;
 pub use toolbar::Tool;
+use tracing::instrument;
 use tracing::span;
 use tracing::Level;
 use usvg_parser::Options;
@@ -74,11 +75,8 @@ impl SVGEditor {
         }
     }
 
+    #[instrument(level="trace", name="show canvas", skip_all, fields(frame = ui.ctx().frame_nr()))]
     pub fn show(&mut self, ui: &mut egui::Ui) {
-        let frame = ui.ctx().frame_nr();
-        let span = span!(Level::TRACE, "showing canvas widget", frame);
-        let _ = span.enter();
-
         if ui.input(|r| r.key_down(egui::Key::D)) {
             self.show_debug_info(ui);
         }

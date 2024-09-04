@@ -1,6 +1,7 @@
 use egui_wgpu_backend::wgpu;
-use std::iter;
 use std::time::Instant;
+use std::{iter, time::Duration};
+use tracing::{info, info_span, instrument, span, Level};
 use workspace_rs::workspace::Workspace;
 
 /// cbindgen:ignore
@@ -33,6 +34,7 @@ pub struct WgpuWorkspace<'window> {
 }
 
 impl<'window> WgpuWorkspace<'window> {
+    #[instrument(level = "trace", name = "rust frame", skip_all)]
     pub fn frame(&mut self) -> Response {
         self.configure_surface();
         let output_frame = match self.surface.get_current_texture() {
@@ -66,7 +68,41 @@ impl<'window> WgpuWorkspace<'window> {
             };
             egui::CentralPanel::default()
                 .frame(egui::Frame::default().fill(fill))
-                .show(&self.context, |ui| self.workspace.show(ui))
+                .show(&self.context, |ui| {
+                    let res = ui.input(|r| {
+                        let events: Vec<egui::Pos2> = r
+                            .events
+                            .iter()
+                            .filter_map(|e| {
+                                if let egui::Event::Touch { device_id, id, phase, pos, force } = e {
+                                    Some(pos.clone())
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect();
+
+                        let first_pos = events.first();
+
+                        let last_pos = events.last();
+
+                        if first_pos.is_some() && last_pos.is_some() {
+                            return Some((
+                                first_pos.unwrap().to_owned(),
+                                last_pos.unwrap().to_owned(),
+                            ));
+                        } else {
+                            return None;
+                        }
+                    });
+                    if let Some(r) = res {
+                        ui.painter().circle_filled(r.0, 4.0, egui::Color32::BLUE);
+                        ui.painter().circle_filled(r.1, 4.0, egui::Color32::RED);
+                    }
+
+                    // self.workspace.show(ui)
+                    workspace_rs::Response::default()
+                })
                 .inner
         };
 
@@ -97,9 +133,11 @@ impl<'window> WgpuWorkspace<'window> {
             )
             .unwrap();
         // Submit the commands.
+
         self.queue.submit(iter::once(encoder.finish()));
 
         // Redraw egui
+
         output_frame.present();
 
         self.rpass
@@ -130,7 +168,8 @@ impl<'window> WgpuWorkspace<'window> {
     pub fn surface_format(&self) -> wgpu::TextureFormat {
         // todo: is this really fine?
         // from here: https://github.com/hasenbanck/egui_example/blob/master/src/main.rs#L65
-        self.surface.get_capabilities(&self.adapter).formats[0]
+        let capabilities = self.surface.get_capabilities(&self.adapter);
+        capabilities.formats[0]
     }
 
     pub fn configure_surface(&mut self) {
