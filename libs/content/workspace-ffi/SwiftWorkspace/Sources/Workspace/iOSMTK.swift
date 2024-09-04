@@ -8,6 +8,59 @@ import UniformTypeIdentifiers
 
 import GameController
 
+class OverlayDrawingView: UIView {
+    private let shapeLayer = CAShapeLayer()
+    private var currentPath: UIBezierPath?
+    private var drawingWrapper: iOSMTKDrawingWrapper? = nil
+    
+    init(frame: CGRect, drawingWrapper: iOSMTKDrawingWrapper) {
+        super.init(frame: frame)
+        self.drawingWrapper = drawingWrapper
+        setupView()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupView()
+    }
+
+    private func setupView() {
+        // Set up the shape layer
+        shapeLayer.strokeColor = UIColor.green.cgColor
+        shapeLayer.opacity = 0.5
+        shapeLayer.lineWidth = 2.0
+        shapeLayer.fillColor = nil // No fill
+        shapeLayer.lineCap = .round
+        layer.addSublayer(shapeLayer)
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let point = touch.location(in: self)
+        
+        currentPath = UIBezierPath()
+        currentPath?.move(to: point)
+        drawingWrapper!.touchesBegan(touches, with: event)
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first, let path = currentPath else { return }
+        let point = touch.location(in: self)
+        
+        path.addLine(to: point)
+        shapeLayer.path = path.cgPath
+        drawingWrapper!.touchesMoved(touches, with: event)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let path = currentPath else { return }
+        
+        shapeLayer.path = path.cgPath
+        currentPath = nil
+        drawingWrapper!.touchesEnded(touches, with: event)
+    }
+}
+
 public class iOSMTKTextInputWrapper: UIView, UITextInput, UIDropInteractionDelegate {
     public static let TOOL_BAR_HEIGHT: CGFloat = 42
     public static let FLOATING_CURSOR_OFFSET_HEIGHT: CGFloat = 0.6

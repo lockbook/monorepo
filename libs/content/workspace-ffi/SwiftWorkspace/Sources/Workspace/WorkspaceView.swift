@@ -191,6 +191,18 @@ public class iOSMTKInputManager: UIView, UIGestureRecognizerDelegate {
                         drawingWrapper.rightAnchor.constraint(equalTo: inputManager.rightAnchor),
                         drawingWrapper.bottomAnchor.constraint(equalTo: inputManager.bottomAnchor)
                     ])
+                    
+                    let overlayDrawingWrapper = OverlayDrawingView(frame: drawingWrapper.bounds, drawingWrapper: drawingWrapper)
+                    overlayDrawingWrapper.backgroundColor = .clear
+                    overlayDrawingWrapper.translatesAutoresizingMaskIntoConstraints = false
+                    inputManager.addSubview(overlayDrawingWrapper)
+                    NSLayoutConstraint.activate([
+                        overlayDrawingWrapper.topAnchor.constraint(equalTo: inputManager.topAnchor),
+                        overlayDrawingWrapper.leftAnchor.constraint(equalTo: inputManager.leftAnchor),
+                        overlayDrawingWrapper.rightAnchor.constraint(equalTo: inputManager.rightAnchor),
+                        overlayDrawingWrapper.bottomAnchor.constraint(equalTo: inputManager.bottomAnchor)
+                    ])
+
                 case .PlainText, .Markdown:
                     let textWrapper = iOSMTKTextInputWrapper(mtkView: inputManager.mtkView)
                     inputManager.currentWrapper = textWrapper
