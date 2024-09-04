@@ -70,34 +70,29 @@ impl<'window> WgpuWorkspace<'window> {
                 .frame(egui::Frame::default().fill(fill))
                 .show(&self.context, |ui| {
                     let res = ui.input(|r| {
-                        let events: Vec<egui::Pos2> = r
+                        let events: Vec<(egui::Pos2, f32)> = r
                             .events
                             .iter()
                             .filter_map(|e| {
                                 if let egui::Event::Touch { device_id, id, phase, pos, force } = e {
-                                    Some(pos.clone())
+                                    Some((pos.clone(), force.unwrap_or(-1.0)))
                                 } else {
                                     None
                                 }
                             })
                             .collect();
 
-                        let first_pos = events.first();
-
-                        let last_pos = events.last();
-
-                        if first_pos.is_some() && last_pos.is_some() {
-                            return Some((
-                                first_pos.unwrap().to_owned(),
-                                last_pos.unwrap().to_owned(),
-                            ));
-                        } else {
-                            return None;
-                        }
+                        events
                     });
-                    if let Some(r) = res {
-                        ui.painter().circle_filled(r.0, 4.0, egui::Color32::BLUE);
-                        ui.painter().circle_filled(r.1, 4.0, egui::Color32::RED);
+
+                    for pos in res {
+                        let color = match pos.1 {
+                            0.0 => egui::Color32::RED, //coalesced 
+                            0.5 => egui::Color32::BLUE,
+                            1.0 => egui::Color32::GREEN, // predicted 
+                            _ => egui::Color32::BLACK,
+                        };
+                        ui.painter().circle_filled(pos.0, 4.0, color);
                     }
 
                     // self.workspace.show(ui)

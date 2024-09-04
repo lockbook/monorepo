@@ -1060,18 +1060,18 @@ public class iOSMTK: MTKView, MTKViewDelegate {
                 let location = touch.location(in: self)
                 let force = touch.force != 0 ? touch.force / touch.maximumPossibleForce : 0
                 
-                touches_moved(wsHandle, value, Float(location.x), Float(location.y), Float(force))
+                touches_moved(wsHandle, value, Float(location.x), Float(location.y), 0.0)
              }
             let location = touch.location(in: self)
             let force = touch.force != 0 ? touch.force / touch.maximumPossibleForce : 0
 
-            touches_moved(wsHandle, value, Float(location.x), Float(location.y), Float(force))
+            touches_moved(wsHandle, value, Float(location.x), Float(location.y), 0.5)
 
             for touch in event!.predictedTouches(for: touch)! {
                 let location = touch.location(in: self)
                 let force = touch.force != 0 ? touch.force / touch.maximumPossibleForce : 0
                 
-                touches_moved(wsHandle, value, Float(location.x), Float(location.y), Float(force))
+                touches_moved(wsHandle, value, Float(location.x), Float(location.y), 1)
              }
             
         }
