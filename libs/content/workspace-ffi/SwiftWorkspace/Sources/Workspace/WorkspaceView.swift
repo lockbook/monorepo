@@ -15,7 +15,6 @@ public struct WorkspaceView: View, Equatable {
     let coreHandle: UnsafeMutableRawPointer?
     
     @State var activeTabName = ""
-    @State private var canvasView = PKCanvasView()
     
     public init(_ workspaceState: WorkspaceState, _ coreHandle: UnsafeMutableRawPointer?) {
         self.workspaceState = workspaceState
@@ -23,14 +22,20 @@ public struct WorkspaceView: View, Equatable {
     }
     
     public var body: some View {
-        ZStack {
-            UIWS(workspaceState, coreHandle)
-                        
-            PencilKitWrapper(canvasView: $canvasView)
-                .background(.clear)
+        TabView {
+            ZStack {
+                UIWS(workspaceState, coreHandle)
+
+                SimpleDrawingWithVel()
+            }
+                .tabItem {
+                    Label("Workspace", systemImage: "pencil.line")
+                }
             
-            SimpleDrawingWithVel()
-                .background(.clear)
+            SimplePencilKitWrapper()
+                .tabItem {
+                    Label("Pencil Kit", systemImage: "pencil.line")
+                }
         }
     }
     
@@ -77,45 +82,29 @@ struct SimpleDrawingWrapper: UIViewRepresentable {
     func updateUIView(_ uiView: UIViewType, context: Context) {}
 }
 
+struct SimplePencilKitWrapper: View {
+    @State private var canvasView = PKCanvasView()
+
+    var body: some View {
+        PencilKitWrapper(canvasView: $canvasView)
+    }
+}
+
 struct PencilKitWrapper: UIViewRepresentable {
     @Binding var canvasView: PKCanvasView
     
-    static var canvas: TouchForwardingView? = nil
+    static var canvas: PKCanvasView? = nil
     
-    func makeUIView(context: Context) -> TouchForwardingView {
+    func makeUIView(context: Context) -> PKCanvasView {
         canvasView.drawingPolicy = .anyInput
-        canvasView.tool = PKInkingTool(.marker, color: .black, width: 5)
+        canvasView.tool = PKInkingTool(.pen, color: .black, width: 5)
         canvasView.backgroundColor = .clear
-
-        let view = TouchForwardingView()
-        view.targetView = canvasView
-        view.backgroundColor = .clear
-        Self.canvas = view
+        Self.canvas = canvasView
         
-        return view
+        return canvasView
     }
 
-    func updateUIView(_ canvasView: TouchForwardingView, context: Context) { }
-}
-
-class TouchForwardingView: UIView {
-    var targetView: UIView?
-
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        targetView?.touchesBegan(touches, with: event)
-    }
-
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        targetView?.touchesMoved(touches, with: event)
-    }
-
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        targetView?.touchesEnded(touches, with: event)
-    }
-
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        targetView?.touchesCancelled(touches, with: event)
-    }
+    func updateUIView(_ canvasView: PKCanvasView, context: Context) { }
 }
 
 
@@ -152,7 +141,6 @@ class SimpleDrawingView: UIView {
         
         updateCircle(at: point)
         
-//        PencilKitWrapper.canvas!.touchesBegan(touches, with: event)
         UIWS.inputManager!.currentWrapper!.touchesBegan(touches, with: event)
     }
 
@@ -166,7 +154,6 @@ class SimpleDrawingView: UIView {
         
         updateCircle(at: point)
         
-//        PencilKitWrapper.canvas!.touchesMoved(touches, with: event)
         UIWS.inputManager!.currentWrapper!.touchesMoved(touches, with: event)
     }
 
@@ -178,7 +165,6 @@ class SimpleDrawingView: UIView {
         lastMoment = currentTime
         lastPoint = point
         
-//        PencilKitWrapper.canvas!.touchesEnded(touches, with: event)
         UIWS.inputManager!.currentWrapper!.touchesEnded(touches, with: event)
     }
 
