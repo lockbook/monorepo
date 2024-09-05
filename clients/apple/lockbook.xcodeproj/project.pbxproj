@@ -32,6 +32,7 @@
 		4782F83B2C49B4E700D55923 /* DeleteConfirmationButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4782F83A2C49B4E700D55923 /* DeleteConfirmationButtons.swift */; };
 		4782F83C2C49B4E700D55923 /* DeleteConfirmationButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4782F83A2C49B4E700D55923 /* DeleteConfirmationButtons.swift */; };
 		47837E292A72EA7500863FA4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B273394C26C8A4B400303EAE /* Assets.xcassets */; };
+		478F0A9B2C89F4BA009D9896 /* PencilKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 478F0A9A2C89F4BA009D9896 /* PencilKit.framework */; };
 		47A45FBB2969047B00573044 /* ShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47A45FBA2969047B00573044 /* ShareService.swift */; };
 		47A45FBC2969047B00573044 /* ShareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47A45FBA2969047B00573044 /* ShareService.swift */; };
 		47B041F32905BFB100A02DA7 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 47B041F22905BFB100A02DA7 /* AlertToast */; };
@@ -176,6 +177,7 @@
 		477CC48F2967A53C00714456 /* ShareFileSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareFileSheet.swift; sourceTree = "<group>"; };
 		4782F83A2C49B4E700D55923 /* DeleteConfirmationButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteConfirmationButtons.swift; sourceTree = "<group>"; };
 		4788D3842C5D71A900507DCE /* ShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
+		478F0A9A2C89F4BA009D9896 /* PencilKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PencilKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.5.sdk/System/Library/Frameworks/PencilKit.framework; sourceTree = DEVELOPER_DIR; };
 		47A45FBA2969047B00573044 /* ShareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareService.swift; sourceTree = "<group>"; };
 		47B53837290EFE150012E542 /* BillingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingService.swift; sourceTree = "<group>"; };
 		47B67288295F977C00DB0D8E /* ManageSubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageSubscriptionView.swift; sourceTree = "<group>"; };
@@ -262,6 +264,7 @@
 			files = (
 				EA82B20C262652F700EE82B9 /* Introspect in Frameworks */,
 				47B041F32905BFB100A02DA7 /* AlertToast in Frameworks */,
+				478F0A9B2C89F4BA009D9896 /* PencilKit.framework in Frameworks */,
 				47FCC5B12C1A33A9001AB7ED /* GameController.framework in Frameworks */,
 				471C788D2B4910A80022B3B2 /* SwiftWorkspace in Frameworks */,
 				EA9EEFD225FC058100E8C790 /* SwiftLockbookCore in Frameworks */,
@@ -355,6 +358,7 @@
 		EA14E8172516643400B9158C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				478F0A9A2C89F4BA009D9896 /* PencilKit.framework */,
 				47FCC5AE2C1A339D001AB7ED /* GameController.framework */,
 				47FCC5B02C1A33A9001AB7ED /* GameController.framework */,
 				47F098392BCDA94800F66CED /* SystemConfiguration.framework */,

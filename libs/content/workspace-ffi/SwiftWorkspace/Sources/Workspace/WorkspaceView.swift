@@ -6,6 +6,8 @@ import Bridge
 
 #if os(iOS)
 import GameController
+import UIKit
+import PencilKit
 
 public struct WorkspaceView: View, Equatable {
     
@@ -13,6 +15,7 @@ public struct WorkspaceView: View, Equatable {
     let coreHandle: UnsafeMutableRawPointer?
     
     @State var activeTabName = ""
+    @State private var canvasView = PKCanvasView()
     
     public init(_ workspaceState: WorkspaceState, _ coreHandle: UnsafeMutableRawPointer?) {
         self.workspaceState = workspaceState
@@ -20,11 +23,169 @@ public struct WorkspaceView: View, Equatable {
     }
     
     public var body: some View {
-        UIWS(workspaceState, coreHandle)
+        ZStack {
+            UIWS(workspaceState, coreHandle)
+                        
+            PencilKitWrapper(canvasView: $canvasView)
+                .background(.clear)
+            
+            SimpleDrawingWithVel()
+                .background(.clear)
+        }
     }
     
     public static func == (lhs: WorkspaceView, rhs: WorkspaceView) -> Bool {
         return true
+    }
+}
+
+struct SimpleDrawingWithVel: View {
+    @State var vel: Double = 0.0
+    
+    var body: some View {
+        ZStack {
+            VStack {
+                HStack {
+                    Text("\(vel)")
+                    
+                    Spacer()
+                }
+                .padding()
+                
+                Spacer()
+            }
+            .padding()
+            
+            SimpleDrawingWrapper(updateVel: {
+                vel = $0
+            })
+        }
+    }
+}
+
+struct SimpleDrawingWrapper: UIViewRepresentable {
+    let updateVel: (Double) -> Void
+    
+    init(updateVel: @escaping (Double) -> Void) {
+        self.updateVel = updateVel
+    }
+    
+    func makeUIView(context: Context) -> some UIView {
+        SimpleDrawingView(frame: .infinite, updateVel: updateVel)
+    }
+    
+    func updateUIView(_ uiView: UIViewType, context: Context) {}
+}
+
+struct PencilKitWrapper: UIViewRepresentable {
+    @Binding var canvasView: PKCanvasView
+    
+    static var canvas: TouchForwardingView? = nil
+    
+    func makeUIView(context: Context) -> TouchForwardingView {
+        canvasView.drawingPolicy = .anyInput
+        canvasView.tool = PKInkingTool(.marker, color: .black, width: 5)
+        canvasView.backgroundColor = .clear
+
+        let view = TouchForwardingView()
+        view.targetView = canvasView
+        view.backgroundColor = .clear
+        Self.canvas = view
+        
+        return view
+    }
+
+    func updateUIView(_ canvasView: TouchForwardingView, context: Context) { }
+}
+
+class TouchForwardingView: UIView {
+    var targetView: UIView?
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        targetView?.touchesBegan(touches, with: event)
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        targetView?.touchesMoved(touches, with: event)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        targetView?.touchesEnded(touches, with: event)
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        targetView?.touchesCancelled(touches, with: event)
+    }
+}
+
+
+class SimpleDrawingView: UIView {
+    private let circleLayer = CAShapeLayer()
+    private var lastPoint: CGPoint = .zero
+    private var lastMoment = 0.0
+    var updateVel: (Double) -> Void = {_ in }
+    
+    init(frame: CGRect, updateVel: @escaping (Double) -> Void) {
+        super.init(frame: frame)
+        self.updateVel = updateVel
+        setupView()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func setupView() {
+        circleLayer.strokeColor = UIColor.green.cgColor
+        circleLayer.fillColor = UIColor.green.withAlphaComponent(0.5).cgColor
+        circleLayer.lineWidth = 0.5
+        layer.addSublayer(circleLayer)
+        
+        backgroundColor = .clear
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let point = touch.location(in: self)
+        lastPoint = point
+        lastMoment = Date().timeIntervalSince1970
+        
+        updateCircle(at: point)
+        
+//        PencilKitWrapper.canvas!.touchesBegan(touches, with: event)
+        UIWS.inputManager!.currentWrapper!.touchesBegan(touches, with: event)
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let point = touch.location(in: self)
+        let currentTime = Date().timeIntervalSince1970
+        updateVel(sqrt(pow(point.x - lastPoint.x, 2) + pow(point.y - lastPoint.y, 2)) / (currentTime - lastMoment))
+        lastMoment = currentTime
+        lastPoint = point
+        
+        updateCircle(at: point)
+        
+//        PencilKitWrapper.canvas!.touchesMoved(touches, with: event)
+        UIWS.inputManager!.currentWrapper!.touchesMoved(touches, with: event)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let point = touch.location(in: self)
+        let currentTime = Date().timeIntervalSince1970
+        updateVel(sqrt(pow(point.x - lastPoint.x, 2) + pow(point.y - lastPoint.y, 2)) / (currentTime - lastMoment))
+        lastMoment = currentTime
+        lastPoint = point
+        
+//        PencilKitWrapper.canvas!.touchesEnded(touches, with: event)
+        UIWS.inputManager!.currentWrapper!.touchesEnded(touches, with: event)
+    }
+
+    private func updateCircle(at point: CGPoint) {
+        let radius: CGFloat = 5.0
+        let circlePath = UIBezierPath(arcCenter: point, radius: radius, startAngle: 0, endAngle: CGFloat.pi * 2, clockwise: true)
+        circleLayer.path = circlePath.cgPath
     }
 }
 
@@ -191,18 +352,6 @@ public class iOSMTKInputManager: UIView, UIGestureRecognizerDelegate {
                         drawingWrapper.rightAnchor.constraint(equalTo: inputManager.rightAnchor),
                         drawingWrapper.bottomAnchor.constraint(equalTo: inputManager.bottomAnchor)
                     ])
-                    
-                    let overlayDrawingWrapper = OverlayDrawingView(frame: drawingWrapper.bounds, drawingWrapper: drawingWrapper)
-                    overlayDrawingWrapper.backgroundColor = .clear
-                    overlayDrawingWrapper.translatesAutoresizingMaskIntoConstraints = false
-                    inputManager.addSubview(overlayDrawingWrapper)
-                    NSLayoutConstraint.activate([
-                        overlayDrawingWrapper.topAnchor.constraint(equalTo: inputManager.topAnchor),
-                        overlayDrawingWrapper.leftAnchor.constraint(equalTo: inputManager.leftAnchor),
-                        overlayDrawingWrapper.rightAnchor.constraint(equalTo: inputManager.rightAnchor),
-                        overlayDrawingWrapper.bottomAnchor.constraint(equalTo: inputManager.bottomAnchor)
-                    ])
-
                 case .PlainText, .Markdown:
                     let textWrapper = iOSMTKTextInputWrapper(mtkView: inputManager.mtkView)
                     inputManager.currentWrapper = textWrapper
