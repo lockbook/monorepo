@@ -1,4 +1,4 @@
-use egui_wgpu_backend::wgpu;
+use egui_wgpu_backend::wgpu::{self, SurfaceTexture};
 use std::time::Instant;
 use std::{iter, time::Duration};
 use tracing::{info, info_span, instrument, span, Level};
@@ -34,7 +34,7 @@ pub struct WgpuWorkspace<'window> {
 }
 
 impl<'window> WgpuWorkspace<'window> {
-    #[instrument(level = "trace", name = "rust frame", skip_all)]
+    #[instrument(level = "info", name = "rust frame", skip_all)]
     pub fn frame(&mut self) -> Response {
         self.configure_surface();
         let output_frame = match self.surface.get_current_texture() {
@@ -51,14 +51,18 @@ impl<'window> WgpuWorkspace<'window> {
                 return Default::default();
             }
         };
+
+        info!("output_frame");
         let output_view = output_frame
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
+        info!("output view");
 
         // can probably use run
         self.set_egui_screen();
         self.raw_input.time = Some(self.start_time.elapsed().as_secs_f64());
         self.context.begin_frame(self.raw_input.take());
+        info!("begin frame");
 
         let workspace_response = {
             let fill = if self.context.style().visuals.dark_mode {
@@ -69,34 +73,8 @@ impl<'window> WgpuWorkspace<'window> {
             egui::CentralPanel::default()
                 .frame(egui::Frame::default().fill(fill))
                 .show(&self.context, |ui| {
-                    let res = ui.input(|r| {
-                        let events: Vec<(egui::Pos2, f32)> = r
-                            .events
-                            .iter()
-                            .filter_map(|e| {
-                                if let egui::Event::Touch { device_id, id, phase, pos, force } = e {
-                                    Some((pos.clone(), force.unwrap_or(-1.0)))
-                                } else {
-                                    None
-                                }
-                            })
-                            .collect();
-
-                        events
-                    });
-
-                    for pos in res {
-                        let color = match pos.1 {
-                            0.0 => egui::Color32::RED, //coalesced 
-                            0.5 => egui::Color32::BLUE,
-                            1.0 => egui::Color32::GREEN, // predicted 
-                            _ => egui::Color32::BLACK,
-                        };
-                        ui.painter().circle_filled(pos.0, 4.0, color);
-                    }
-
+                    self.workspace.show_debug_stroke(ui)
                     // self.workspace.show(ui)
-                    workspace_rs::Response::default()
                 })
                 .inner
         };
@@ -106,6 +84,8 @@ impl<'window> WgpuWorkspace<'window> {
         let paint_jobs = self
             .context
             .tessellate(full_output.shapes, full_output.pixels_per_point);
+        info!("tess");
+
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some("encoder") });
@@ -114,9 +94,12 @@ impl<'window> WgpuWorkspace<'window> {
         self.rpass
             .add_textures(&self.device, &self.queue, &tdelta)
             .expect("add texture ok");
+        info!("add textures");
 
         self.rpass
             .update_buffers(&self.device, &self.queue, &paint_jobs, &self.screen);
+
+        info!("update buffers");
         // Record all render passes.
         self.rpass
             .execute(
@@ -128,8 +111,11 @@ impl<'window> WgpuWorkspace<'window> {
             )
             .unwrap();
         // Submit the commands.
+        info!("run  pass");
 
         self.queue.submit(iter::once(encoder.finish()));
+
+        info!("submit queue");
 
         // Redraw egui
 
@@ -138,6 +124,8 @@ impl<'window> WgpuWorkspace<'window> {
         self.rpass
             .remove_textures(tdelta)
             .expect("remove texture ok");
+
+        info!("done");
 
         Response::new(
             &self.context,

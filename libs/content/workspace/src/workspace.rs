@@ -235,6 +235,45 @@ impl Workspace {
         self.active_tab = if i == 9 || i >= n_tabs { n_tabs - 1 } else { i - 1 };
     }
 
+    pub fn show_debug_stroke(&mut self, ui: &mut egui::Ui) -> Response {
+        let mut res = ui.input(|r| {
+            let events: Vec<egui::Pos2> = r
+                .events
+                .iter()
+                .filter_map(|e| {
+                    if let egui::Event::Touch { device_id, id, phase, pos, force } = e {
+                        Some(pos.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            events
+        });
+
+        let should_rebuild_path = ui.input(|r| r.pointer.any_released());
+
+        let positions = self.ctx.memory_mut(|m| {
+            let mut positions: &mut Vec<egui::Pos2> =
+                m.data.get_persisted_mut_or_default("debug_stroke".into());
+
+            if should_rebuild_path {
+                positions.clear();
+                positions = &mut res;
+            } else {
+                positions.append(&mut res)
+            }
+            positions.clone()
+        });
+
+        for pos in positions {
+            ui.painter().circle_filled(pos, 2.0, egui::Color32::BLUE);
+        }
+
+        Response::default()
+    }
+
     pub fn show(&mut self, ui: &mut egui::Ui) -> Response {
         self.set_tooltip_visibility(ui);
 

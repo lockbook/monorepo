@@ -902,8 +902,8 @@ public class iOSMTK: MTKView, MTKViewDelegate {
     }
     
     public func draw(in view: MTKView) {
-        print("draw enter")
-        printTime()
+       print("draw enter")
+       printTime()
             
         if tabSwitchTask != nil {
             tabSwitchTask!()
@@ -1027,8 +1027,8 @@ public class iOSMTK: MTKView, MTKViewDelegate {
 //        }
 //        
 //        self.enableSetNeedsDisplay = self.isPaused
-        print("draw exit")
-        printTime()
+       print("draw exit")
+       printTime()
     }
 
     override public func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -1076,8 +1076,8 @@ public class iOSMTK: MTKView, MTKViewDelegate {
             
         }
         self.setNeedsDisplay(self.frame)
-        print("set need display")
-        printTime()
+//        print("set need display")
+//        printTime()
 
     }
 

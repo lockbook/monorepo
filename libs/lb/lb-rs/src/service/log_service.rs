@@ -32,9 +32,11 @@ pub fn init(config: &Config) -> LbResult<()> {
                     .pretty()
                     .with_target(false)
                     .with_span_events(FmtSpan::ACTIVE)
+                    .with_filter(LevelFilter::INFO)
                     .with_filter(filter::filter_fn(|metadata| {
-                        metadata.target().starts_with("workspace")
-                            || metadata.target().starts_with("lb_fs")
+                        // metadata.target().starts_with("workspace")
+                        //     || metadata.target().starts_with("lb_fs");
+                        false
                     })),
             );
 
