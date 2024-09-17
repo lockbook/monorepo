@@ -343,7 +343,11 @@ impl Editor {
                         {
                             indent_level
                         } else {
-                            continue; // only process list items
+                            let galley = &self.galleys[galley_idx];
+                            let galley_text =
+                                &(&self.buffer)[(galley.range.start(), galley.range.end())];
+                            galley_text.chars().take_while(|c| *c == '\t').count() as _
+                            // todo: support spaces indentation
                         };
                     if !indentation_processed_galleys.insert(galley_idx) {
                         continue; // only process each galley once
@@ -386,8 +390,10 @@ impl Editor {
                     let new_indent_level = if deindent {
                         let mut can_deindent = true;
                         if cur_indent_level == 0 {
-                            can_deindent = false; // cannot de-indent un-indented list item
-                        } else if galley_idx != self.galleys.len() - 1 {
+                            can_deindent = false; // cannot de-indent un-indented anything
+                        } else if galley_idx != self.galleys.len() - 1
+                            && matches!(galley.annotation, Some(Annotation::Item(..)))
+                        {
                             let next_galley = &self.galleys[galley_idx + 1];
                             if let Some(Annotation::Item(.., next_indent_level)) =
                                 &next_galley.annotation
@@ -419,7 +425,7 @@ impl Editor {
                         let mut can_indent = true;
                         if galley_idx == 0 {
                             can_indent = false; // first galley cannot be indented
-                        } else {
+                        } else if matches!(galley.annotation, Some(Annotation::Item(..))) {
                             let prior_galley = &self.galleys[galley_idx - 1];
                             if let Some(Annotation::Item(_, prior_indent_level)) =
                                 &prior_galley.annotation
