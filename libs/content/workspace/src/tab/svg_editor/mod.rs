@@ -147,6 +147,9 @@ impl SVGEditor {
 
     fn process_events(&mut self, ui: &mut egui::Ui) {
         // self.show_debug_info(ui);
+        println!("----");
+        ui.input(|r| println!("{:#?}", r.events));
+        println!("----");
 
         if !ui.is_enabled() {
             return;
@@ -173,7 +176,7 @@ impl SVGEditor {
         };
 
         match self.toolbar.active_tool {
-            Tool::Pen | Tool::Brush | Tool::Highlighter => {
+            Tool::Pen | Tool::Highlighter => {
                 self.toolbar.pen.handle_input(ui, &mut tool_context);
             }
             Tool::Eraser => {
