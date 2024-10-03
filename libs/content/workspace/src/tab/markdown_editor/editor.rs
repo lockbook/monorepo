@@ -241,6 +241,8 @@ impl Editor {
         let suggest_rename =
             if suggested_title != prior_suggested_title { suggested_title } else { None };
 
+        self.calc_components(ui);
+
         Response {
             text_updated,
             selection_updated,
