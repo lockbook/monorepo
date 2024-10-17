@@ -16,6 +16,8 @@ const fn ic(c: &'static str) -> Icon {
 impl Icon {
     pub const ACCOUNT: Self = ic("\u{e7ff}"); // Person Outline
     pub const ARROW_CIRCLE_DOWN: Self = ic("\u{f181}"); // Arrow Circle Down
+    pub const ARROW_UPWARD: Self = ic("\u{e5d8}"); // Arrow Upward
+    pub const ARROW_DOWNWARD: Self = ic("\u{e5db}"); // Arrow Downward
     pub const BRING_BACK: Self = ic("\u{e5cb}");
     pub const BRING_TO_BACK: Self = ic("\u{e5dc}");
     pub const BRING_TO_FRONT: Self = ic("\u{e5dd}");
