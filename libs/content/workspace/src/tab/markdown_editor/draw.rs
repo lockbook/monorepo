@@ -66,7 +66,10 @@ impl Editor {
                             ui.painter().galley(rect.min, galley, Color32::TRANSPARENT);
                         }
                         ListItem::Todo(checked) => {
-                            let bounds = galley.checkbox_bounds(&self.appearance);
+                            let mut bounds = galley.checkbox_bounds(&self.appearance);
+                            if cfg!(target_os = "ios") || cfg!(target_os = "android") {
+                                bounds = bounds.expand(4.);
+                            }
                             let resp = ui.allocate_rect(bounds, Sense::click());
 
                             let hovered = resp.hovered();
