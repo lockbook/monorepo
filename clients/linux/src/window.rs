@@ -62,7 +62,7 @@ atom_manager! {
 }
 
 use crate::{
-    input::{self, clipboard_paste},
+    input::{self, clipboard_paste, key::Keyboard},
     output,
 };
 
@@ -172,11 +172,12 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut last_copied_text = String::new();
     let mut paste_context = clipboard_paste::Context::new(window_id, conn, &atoms);
     let mut cursor_manager = output::cursor::Manager::new(conn, screen_num)?;
+    let keyboard = Keyboard::new();
     loop {
         let mut got_events = got_events_atomic.load(Ordering::SeqCst);
         while let Some(event) = conn.poll_for_event()? {
             got_events = true;
-            handle(conn, &atoms, &last_copied_text, event, &mut lb, &mut paste_context)?;
+            handle(conn, &atoms, &keyboard, &last_copied_text, event, &mut lb, &mut paste_context)?;
         }
         if got_events {
             got_events_atomic.store(false, Ordering::SeqCst);
@@ -242,8 +243,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn handle(
-    conn: &XCBConnection, atoms: &AtomCollection, last_copied_text: &str, event: Event,
-    lb: &mut WgpuLockbook, paste_context: &mut clipboard_paste::Context,
+    conn: &XCBConnection, atoms: &AtomCollection, keyboard: &Keyboard, last_copied_text: &str,
+    event: Event, lb: &mut WgpuLockbook, paste_context: &mut clipboard_paste::Context,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match event {
         // pointer
@@ -259,10 +260,10 @@ fn handle(
 
         // keyboard
         Event::KeyPress(event) => {
-            input::key::handle(event.detail, event.state, true, lb, paste_context)?
+            keyboard.handle(event.detail, event.state, true, lb, paste_context)?
         }
         Event::KeyRelease(event) => {
-            input::key::handle(event.detail, event.state, false, lb, paste_context)?
+            keyboard.handle(event.detail, event.state, false, lb, paste_context)?
         }
 
         // resize
