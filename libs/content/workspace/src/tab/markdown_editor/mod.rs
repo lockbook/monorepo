@@ -1,18 +1,12 @@
 use egui::{FontData, FontDefinitions, FontFamily};
 use std::sync::Arc;
 
-pub mod appearance;
-pub mod ast;
 pub mod bounds;
 pub mod debug;
-pub mod draw;
 pub mod editor;
-pub mod galleys;
 pub mod images;
 pub mod input;
-pub mod layouts;
 pub mod output;
-pub mod style;
 pub mod test_input;
 pub mod widgets;
 
