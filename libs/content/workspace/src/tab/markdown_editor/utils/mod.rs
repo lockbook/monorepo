@@ -1,20 +1,15 @@
-pub mod advance;
-pub mod canonical;
-pub mod capture;
-pub mod cursor;
-pub mod events;
-pub mod mutation;
+// pub mod advance;
+// pub mod bounds;
+// pub mod cursor;
+mod check_assign;
+pub mod style;
+
+pub use check_assign::check_assign;
 
 use egui::Pos2;
 
-use crate::tab::markdown_editor;
 use lb_rs::text::offset_types::DocCharOffset;
-use markdown_editor::style::MarkdownNode;
-
-// This module processes input events, with the following major concerns:
-// * Plumbing: combining programmatic and UI input, delegating to appropriate handlers
-// * Enrichment: did the user click on a link, or select a word, or drag a selection?
-// * Buffer manipulation: text replacements & cursor movements, operational transformation, merging concurrent edits
+use style::MarkdownNode;
 
 /// text location
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

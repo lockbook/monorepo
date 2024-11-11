@@ -8,14 +8,6 @@ use markdown_editor::galleys::{self, Galleys};
 
 use super::advance::AdvanceExt as _;
 
-#[derive(Debug, Default)]
-pub struct CursorState {
-    /// When navigating using up/down keys, x_target stores the original *absolute* x coordinate of
-    /// the cursor, which helps us keep the cursor in a consistent x position even navigating past
-    /// lines that are shorter, empty, annotated, etc.
-    pub x_target: Option<f32>,
-}
-
 pub fn line(
     offset: DocCharOffset, galleys: &Galleys, text: &Text, appearance: &Appearance,
 ) -> [Pos2; 2] {

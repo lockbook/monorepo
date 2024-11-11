@@ -11,8 +11,8 @@ use crate::widgets::IconButton;
 use crate::tab::markdown_editor;
 use markdown_editor::ast::Ast;
 use markdown_editor::bounds::Bounds;
-use markdown_editor::input::Region;
 use markdown_editor::style::{BlockNode, InlineNode, ListItem, MarkdownNode};
+use markdown_editor::utils::Region;
 use markdown_editor::Event;
 
 pub const MOBILE_TOOL_BAR_SIZE: f32 = 45.0;

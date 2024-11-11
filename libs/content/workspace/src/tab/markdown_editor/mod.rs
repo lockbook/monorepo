@@ -1,17 +1,14 @@
 use egui::{FontData, FontDefinitions, FontFamily};
 use std::sync::Arc;
 
-pub mod bounds;
-pub mod debug;
 pub mod editor;
-pub mod images;
-pub mod input;
+pub mod layers;
 pub mod output;
-pub mod test_input;
+pub mod utils;
 pub mod widgets;
 
 pub use editor::{Editor, Response};
-pub use input::Event;
+pub use utils::Event;
 
 pub fn register_fonts(fonts: &mut FontDefinitions) {
     let (pt_sans, pt_mono, pt_bold) = if cfg!(target_vendor = "apple") {

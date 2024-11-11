@@ -1,8 +1,113 @@
-use crate::tab::markdown_editor;
-use egui::{self, Key, Modifiers};
-use markdown_editor::input::{Bound, Event, Increment, Offset, Region};
-use markdown_editor::style::{BlockNode, InlineNode, ListItem, MarkdownNode};
-use pulldown_cmark::{HeadingLevel, LinkType};
+use crate::tab::{
+    self,
+    markdown_editor::{
+        utils::{
+            self,
+            style::{BlockNode, InlineNode, ListItem, MarkdownNode},
+            Bound, Event, Increment, Offset, Region,
+        },
+        Editor,
+    },
+    ClipContent, ExtendedInput as _,
+};
+use egui::{self, Context, EventFilter, Key, Modifiers};
+
+#[derive(Default)]
+pub struct CanonicalInput {
+    pub input: Vec<Event>,
+
+    pub frame_nr: u64,
+
+    pub seq: usize,
+}
+
+impl Editor {
+    pub fn canonical_input(&mut self, ctx: &Context) {
+        let Editor { canonical_input, .. } = self;
+
+        if utils::check_assign(&mut canonical_input.frame_nr, ctx.frame_nr()) {
+            canonical_input.seq += 1;
+        } else {
+            return;
+        }
+
+        canonical_input.input.clear();
+        // canonical_input.input.extend(self.get_cursor_fix_events());
+        canonical_input.input.extend(self.get_workspace_events(ctx));
+        canonical_input.input.extend(self.get_key_events(ctx));
+    }
+
+    // fn get_cursor_fix_events(&self) -> Vec<Event> {
+    //     // if the cursor is in an invalid location, move it to the next valid location
+    //     let mut fixed_selection = self.buffer.current.selection;
+    //     if let BoundCase::BetweenRanges { range_after, .. } =
+    //         fixed_selection.0.bound_case(&self.bounds.text)
+    //     {
+    //         fixed_selection.0 = range_after.start();
+    //     }
+    //     if let BoundCase::BetweenRanges { range_after, .. } =
+    //         fixed_selection.1.bound_case(&self.bounds.text)
+    //     {
+    //         fixed_selection.1 = range_after.start();
+    //     }
+
+    //     if fixed_selection != self.buffer.current.selection {
+    //         vec![Event::Select { region: fixed_selection.into() }]
+    //     } else {
+    //         vec![]
+    //     }
+    // }
+
+    fn get_workspace_events(&self, ctx: &Context) -> Vec<Event> {
+        let mut result = Vec::new();
+        for event in ctx.pop_events() {
+            match event {
+                crate::Event::Markdown(modification) => result.push(modification),
+                crate::Event::Drop { content, .. } | crate::Event::Paste { content, .. } => {
+                    for clip in content {
+                        match clip {
+                            ClipContent::Image(data) => {
+                                let file = tab::import_image(&self.core, self.file_id, &data);
+                                let rel_path =
+                                    tab::core_get_relative_path(&self.core, self.file_id, file.id);
+                                let markdown_image_link = format!("![{}]({})", file.name, rel_path);
+
+                                result.push(Event::Replace {
+                                    region: Region::Selection, // todo: more thoughtful location
+                                    text: markdown_image_link,
+                                });
+                            }
+                            ClipContent::Files(..) => {
+                                // todo: support file drop & paste
+                                println!("unimplemented: editor file drop & paste");
+                            }
+                        }
+                    }
+                }
+                crate::Event::PredictedTouch { .. } => {}
+            }
+        }
+        result
+    }
+
+    fn get_key_events(&self, ctx: &Context) -> Vec<Event> {
+        if self.focused(ctx) {
+            ctx.input(|r| {
+                r.filtered_events(&EventFilter {
+                    tab: true,
+                    horizontal_arrows: true,
+                    vertical_arrows: true,
+                    escape: false,
+                })
+            })
+            .into_iter()
+            .filter_map(translate_egui_keyboard_event)
+            .collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        }
+    }
+}
 
 impl From<Modifiers> for Offset {
     fn from(modifiers: Modifiers) -> Self {
@@ -148,11 +253,7 @@ pub fn translate_egui_keyboard_event(event: egui::Event) -> Option<Event> {
         egui::Event::Key { key: Key::K, pressed: true, modifiers, .. } if modifiers.command => {
             Some(Event::ToggleStyle {
                 region: Region::Selection,
-                style: MarkdownNode::Inline(InlineNode::Link(
-                    LinkType::Inline,
-                    "".into(),
-                    "".into(),
-                )),
+                style: MarkdownNode::Inline(InlineNode::Link("".into(), "".into())),
             })
         }
         egui::Event::Key { key: Key::Num7, pressed: true, modifiers, .. }
@@ -173,32 +274,32 @@ pub fn translate_egui_keyboard_event(event: egui::Event) -> Option<Event> {
         egui::Event::Key { key: Key::Num1, pressed: true, modifiers, .. }
             if modifiers.command && modifiers.alt =>
         {
-            Some(Event::toggle_block_style(BlockNode::Heading(HeadingLevel::H1)))
+            Some(Event::toggle_block_style(BlockNode::Heading(1)))
         }
         egui::Event::Key { key: Key::Num2, pressed: true, modifiers, .. }
             if modifiers.command && modifiers.alt =>
         {
-            Some(Event::toggle_block_style(BlockNode::Heading(HeadingLevel::H2)))
+            Some(Event::toggle_block_style(BlockNode::Heading(2)))
         }
         egui::Event::Key { key: Key::Num3, pressed: true, modifiers, .. }
             if modifiers.command && modifiers.alt =>
         {
-            Some(Event::toggle_block_style(BlockNode::Heading(HeadingLevel::H3)))
+            Some(Event::toggle_block_style(BlockNode::Heading(3)))
         }
         egui::Event::Key { key: Key::Num4, pressed: true, modifiers, .. }
             if modifiers.command && modifiers.alt =>
         {
-            Some(Event::toggle_block_style(BlockNode::Heading(HeadingLevel::H4)))
+            Some(Event::toggle_block_style(BlockNode::Heading(4)))
         }
         egui::Event::Key { key: Key::Num5, pressed: true, modifiers, .. }
             if modifiers.command && modifiers.alt =>
         {
-            Some(Event::toggle_block_style(BlockNode::Heading(HeadingLevel::H5)))
+            Some(Event::toggle_block_style(BlockNode::Heading(5)))
         }
         egui::Event::Key { key: Key::Num6, pressed: true, modifiers, .. }
             if modifiers.command && modifiers.alt =>
         {
-            Some(Event::toggle_block_style(BlockNode::Heading(HeadingLevel::H6)))
+            Some(Event::toggle_block_style(BlockNode::Heading(6)))
         }
         egui::Event::Key { key: Key::Q, pressed: true, modifiers, .. }
             if modifiers.command && modifiers.alt =>
@@ -229,11 +330,5 @@ impl Event {
             region: Region::Bound { bound: Bound::Paragraph, backwards: false },
             style: MarkdownNode::Block(block),
         }
-    }
-
-    pub fn toggle_heading_style(level: usize) -> Self {
-        Self::toggle_block_style(BlockNode::Heading(
-            HeadingLevel::try_from(level).unwrap_or(HeadingLevel::H1),
-        ))
     }
 }

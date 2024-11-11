@@ -3,7 +3,7 @@ use lb_c::{
     Uuid,
 };
 use serde::Serialize;
-use workspace_rs::tab::markdown_editor::input::{Location, Region};
+use workspace_rs::tab::markdown_editor::utils::{Location, Region};
 
 #[derive(Serialize)]
 pub struct AndroidResponse {

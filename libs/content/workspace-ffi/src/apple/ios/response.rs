@@ -3,7 +3,7 @@ use lb_c::{
     Uuid,
 };
 use std::ffi::{c_char, CString};
-use workspace_rs::tab::markdown_editor::input::{Bound, Location, Region};
+use workspace_rs::tab::markdown_editor::utils::{Bound, Location, Region};
 
 use super::super::response::*;
 

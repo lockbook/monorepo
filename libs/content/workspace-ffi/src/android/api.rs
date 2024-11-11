@@ -6,7 +6,7 @@ use lb_c::text::offset_types::DocCharOffset;
 use lb_c::Uuid;
 use serde::Serialize;
 use std::panic::catch_unwind;
-use workspace_rs::tab::markdown_editor::input::{Event, Location, Region};
+use workspace_rs::tab::markdown_editor::utils::{Event, Location, Region};
 use workspace_rs::tab::svg_editor::Tool;
 use workspace_rs::tab::ExtendedInput;
 use workspace_rs::tab::TabContent;
