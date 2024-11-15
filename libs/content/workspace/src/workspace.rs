@@ -922,6 +922,8 @@ impl Workspace {
                             }
                             Err(err) => {
                                 if err.kind == LbErrKind::ReReadRequired {
+                                    tab.load_queued = true;
+                                } else {
                                     tab.failure = Some(TabFailure::Unexpected(format!("{:?}", err)))
                                 }
                             }
