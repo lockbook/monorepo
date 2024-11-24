@@ -52,7 +52,7 @@ struct ConstrainedHomeViewWrapper: View {
             
             if files.path.last?.type != .document {
                 WorkspaceView(DI.workspace, DI.coreService.corePtr)
-                    .equatable()
+                    .id(workspace.workspaceViewId)
                     .opacity(0)
             }
         }
@@ -67,7 +67,7 @@ struct ConstrainedHomeViewWrapper: View {
                         .navigationTitle(meta.name)
                 } else {
                     WorkspaceView(DI.workspace, DI.coreService.corePtr)
-                        .equatable()
+                        .id(workspace.workspaceViewId)
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItemGroup {
@@ -101,6 +101,9 @@ struct ConstrainedHomeViewWrapper: View {
                                 })
                                 .foregroundColor(.blue)
                             }
+                        }
+                        .onDisappear {
+                            DI.workspace.workspaceViewId = UUID()
                         }
                 }
             })

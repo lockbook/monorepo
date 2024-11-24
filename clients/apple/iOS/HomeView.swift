@@ -36,7 +36,7 @@ struct HomeView: View {
     
     var workspaceView: some View {
         WorkspaceView(DI.workspace, DI.coreService.corePtr)
-            .equatable()
+            .id(workspace.workspaceViewId)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if let id = workspace.openDoc, let meta = DI.files.idsAndFiles[id] {
@@ -71,6 +71,9 @@ struct HomeView: View {
                     })
                     .hidden()
             })
+            .onDisappear {
+                DI.workspace.workspaceViewId = UUID()
+            }
     }
 }
 
