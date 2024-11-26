@@ -139,10 +139,6 @@ impl SVGEditor {
 
         if global_diff.is_dirty() {
             self.has_queued_save_request = true;
-            if global_diff.transformed.is_none() {
-                self.toolbar.show_tool_controls = false;
-                self.toolbar.show_viewport_popover = false;
-            }
         }
 
         let needs_save_and_frame_is_cheap =
@@ -188,7 +184,11 @@ impl SVGEditor {
 
         match self.toolbar.active_tool {
             Tool::Pen => {
-                self.toolbar.pen.handle_input(ui, &mut tool_context);
+                let is_drawing = self.toolbar.pen.handle_input(ui, &mut tool_context);
+                if is_drawing {
+                    self.toolbar.show_tool_controls = false;
+                    self.toolbar.show_viewport_popover = false;
+                }
             }
             Tool::Highlighter => {
                 self.toolbar.highlighter.handle_input(ui, &mut tool_context);

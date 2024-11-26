@@ -67,7 +67,9 @@ impl Pen {
                 {
                     trace!(?path_event, "native events");
                     self.handle_path_event(path_event, pen_ctx);
-                    if matches!(path_event, PathEvent::Draw(..)) {
+                    if matches!(path_event, PathEvent::Draw(..))
+                        || matches!(path_event, PathEvent::PredictedDraw(..))
+                    {
                         is_drawing = true;
                     }
                 }
@@ -80,7 +82,9 @@ impl Pen {
                 self.map_ui_event(IntegrationEvent::Custom(e), pen_ctx, &input_state)
             {
                 self.handle_path_event(path_event, pen_ctx);
-                if matches!(path_event, PathEvent::Draw(..)) {
+                if matches!(path_event, PathEvent::Draw(..))
+                    || matches!(path_event, PathEvent::PredictedDraw(..))
+                {
                     is_drawing = true;
                 }
             }
