@@ -74,7 +74,7 @@ pub unsafe extern "C" fn scroll_wheel(
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn clipboard_paste(obj: *mut c_void, content: *const c_char) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -84,7 +84,7 @@ pub unsafe extern "C" fn clipboard_paste(obj: *mut c_void, content: *const c_cha
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn clipboard_send_image(
     obj: *mut c_void, content: *const u8, length: usize, is_paste: bool,
@@ -104,7 +104,7 @@ pub unsafe extern "C" fn clipboard_send_image(
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn clipboard_send_file(
     obj: *mut c_void, file_url: *const c_char, is_paste: bool,
@@ -155,7 +155,7 @@ pub unsafe extern "C" fn mouse_gone(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn tab_renamed(obj: *mut c_void, id: *const c_char, new_name: *const c_char) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -175,7 +175,7 @@ pub unsafe extern "C" fn tab_renamed(obj: *mut c_void, id: *const c_char, new_na
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn close_tab(obj: *mut c_void, id: *const c_char) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -200,7 +200,7 @@ pub struct FfiWsStatus {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn get_status(obj: *mut c_void) -> FfiWsStatus {
     let obj = &mut *(obj as *mut WgpuWorkspace);

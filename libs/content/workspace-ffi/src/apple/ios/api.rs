@@ -27,7 +27,7 @@ pub unsafe extern "C" fn ios_frame(obj: *mut c_void) -> IOSResponse {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uikeyinput/1614543-inserttext
 #[no_mangle]
@@ -47,7 +47,7 @@ pub unsafe extern "C" fn insert_text(obj: *mut c_void, content: *const c_char) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uikeyinput/1614543-inserttext
 #[no_mangle]
@@ -64,7 +64,7 @@ pub unsafe extern "C" fn backspace(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uikeyinput/1614457-hastext
 #[no_mangle]
@@ -79,7 +79,7 @@ pub unsafe extern "C" fn has_text(obj: *mut c_void) -> bool {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614558-replace
 #[no_mangle]
@@ -95,7 +95,7 @@ pub unsafe extern "C" fn replace_text(obj: *mut c_void, range: CTextRange, text:
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn copy_selection(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -103,7 +103,7 @@ pub unsafe extern "C" fn copy_selection(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn cut_selection(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -111,7 +111,7 @@ pub unsafe extern "C" fn cut_selection(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614527-text
 #[no_mangle]
@@ -136,7 +136,7 @@ pub unsafe extern "C" fn text_in_range(obj: *mut c_void, range: CTextRange) -> *
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614541-selectedtextrange
 #[no_mangle]
@@ -158,7 +158,7 @@ pub unsafe extern "C" fn get_selected(obj: *mut c_void) -> CTextRange {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614541-selectedtextrange
 #[no_mangle]
@@ -170,7 +170,7 @@ pub unsafe extern "C" fn set_selected(obj: *mut c_void, range: CTextRange) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn select_current_word(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -180,7 +180,7 @@ pub unsafe extern "C" fn select_current_word(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn select_all(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -190,7 +190,7 @@ pub unsafe extern "C" fn select_all(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614489-markedtextrange
 #[no_mangle]
@@ -202,7 +202,7 @@ pub unsafe extern "C" fn get_marked(_obj: *mut c_void) -> CTextRange {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614465-setmarkedtext
 #[no_mangle]
@@ -211,7 +211,7 @@ pub unsafe extern "C" fn set_marked(_obj: *mut c_void, _range: CTextRange, _text
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614512-unmarktext
 #[no_mangle]
@@ -220,7 +220,7 @@ pub unsafe extern "C" fn unmark_text(_obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614489-markedtextrange
 /// isn't this always just going to be 0?
@@ -231,7 +231,7 @@ pub unsafe extern "C" fn beginning_of_document(_obj: *mut c_void) -> CTextPositi
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614489-markedtextrange
 /// should we be returning a subset of the document? https://stackoverflow.com/questions/12676851/uitextinput-is-it-ok-to-return-incorrect-beginningofdocument-endofdocumen
@@ -247,7 +247,7 @@ pub unsafe extern "C" fn end_of_document(obj: *mut c_void) -> CTextPosition {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 #[instrument(level="trace", skip(obj) fields(frame = (*(obj as *mut WgpuWorkspace)).context.frame_nr()))]
 pub unsafe extern "C" fn touches_began(obj: *mut c_void, id: u64, x: f32, y: f32, force: f32) {
@@ -271,7 +271,7 @@ pub unsafe extern "C" fn touches_began(obj: *mut c_void, id: u64, x: f32, y: f32
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 #[instrument(level="trace", skip(obj) fields(frame = (*(obj as *mut WgpuWorkspace)).context.frame_nr()))]
 pub unsafe extern "C" fn touches_moved(obj: *mut c_void, id: u64, x: f32, y: f32, force: f32) {
@@ -293,7 +293,7 @@ pub unsafe extern "C" fn touches_moved(obj: *mut c_void, id: u64, x: f32, y: f32
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uiresponder/1621142-touchesbegan
 #[no_mangle]
@@ -322,7 +322,7 @@ pub unsafe extern "C" fn touches_ended(obj: *mut c_void, id: u64, x: f32, y: f32
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uiresponder/1621142-touchesbegan
 #[no_mangle]
@@ -343,7 +343,7 @@ pub unsafe extern "C" fn touches_cancelled(obj: *mut c_void, id: u64, x: f32, y:
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uikeyinput/1614543-inserttext
 #[no_mangle]
@@ -359,7 +359,7 @@ pub unsafe extern "C" fn touches_predicted(obj: *mut c_void, id: u64, x: f32, y:
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uiresponder/1621142-touchesbegan
 #[no_mangle]
@@ -380,7 +380,7 @@ pub extern "C" fn text_range(start: CTextPosition, end: CTextPosition) -> CTextR
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uiresponder/1621142-touchesbegan
 #[no_mangle]
@@ -414,7 +414,7 @@ pub unsafe extern "C" fn position_offset(
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uiresponder/1621142-touchesbegan
 #[no_mangle]
@@ -447,7 +447,7 @@ pub unsafe extern "C" fn position_offset_in_direction(
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinputtokenizer/1614553-isposition
 #[no_mangle]
@@ -469,7 +469,7 @@ pub unsafe extern "C" fn is_position_at_bound(
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinputtokenizer/1614491-isposition
 #[no_mangle]
@@ -491,7 +491,7 @@ pub unsafe extern "C" fn is_position_within_bound(
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinputtokenizer/1614513-position
 #[no_mangle]
@@ -514,7 +514,7 @@ pub unsafe extern "C" fn bound_from_position(
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinputtokenizer/1614464-rangeenclosingposition
 #[no_mangle]
@@ -539,7 +539,7 @@ pub unsafe extern "C" fn bound_at_position(
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uitextinput/1614570-firstrect
 #[no_mangle]
@@ -591,7 +591,7 @@ pub unsafe extern "C" fn first_rect(obj: *mut c_void, range: CTextRange) -> CRec
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn clipboard_cut(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -599,7 +599,7 @@ pub unsafe extern "C" fn clipboard_cut(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn clipboard_copy(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -607,7 +607,7 @@ pub unsafe extern "C" fn clipboard_copy(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn position_at_point(obj: *mut c_void, point: CPoint) -> CTextPosition {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -647,7 +647,7 @@ pub unsafe extern "C" fn get_text(obj: *mut c_void) -> *const c_char {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn cursor_rect_at_position(obj: *mut c_void, pos: CTextPosition) -> CRect {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -671,7 +671,7 @@ pub unsafe extern "C" fn cursor_rect_at_position(obj: *mut c_void, pos: CTextPos
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn update_virtual_keyboard(obj: *mut c_void, showing: bool) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -684,7 +684,7 @@ pub unsafe extern "C" fn update_virtual_keyboard(obj: *mut c_void, showing: bool
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn selection_rects(
     obj: *mut c_void, range: CTextRange,
@@ -741,7 +741,7 @@ pub unsafe extern "C" fn selection_rects(
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn free_selection_rects(rects: UITextSelectionRects) {
     let _ = Box::from_raw(std::slice::from_raw_parts_mut(
@@ -751,7 +751,7 @@ pub unsafe extern "C" fn free_selection_rects(rects: UITextSelectionRects) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn get_tabs_ids(obj: *mut c_void) -> TabsIds {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -761,14 +761,14 @@ pub unsafe extern "C" fn get_tabs_ids(obj: *mut c_void) -> TabsIds {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn free_tab_ids(ids: TabsIds) {
     let _ = Box::from_raw(std::slice::from_raw_parts_mut(ids.ids as *mut CUuid, ids.size as usize));
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn indent_at_cursor(obj: *mut c_void, deindent: bool) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -776,7 +776,7 @@ pub unsafe extern "C" fn indent_at_cursor(obj: *mut c_void, deindent: bool) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn undo_redo(obj: *mut c_void, redo: bool) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -788,7 +788,7 @@ pub unsafe extern "C" fn undo_redo(obj: *mut c_void, redo: bool) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn can_undo(obj: *mut c_void) -> bool {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -801,7 +801,7 @@ pub unsafe extern "C" fn can_undo(obj: *mut c_void) -> bool {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn can_redo(obj: *mut c_void) -> bool {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -814,7 +814,7 @@ pub unsafe extern "C" fn can_redo(obj: *mut c_void) -> bool {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 ///
 /// https://developer.apple.com/documentation/uikit/uikeyinput/1614543-inserttext
 #[no_mangle]
@@ -831,7 +831,7 @@ pub unsafe extern "C" fn delete_word(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn current_tab(obj: *mut c_void) -> i64 {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -852,7 +852,7 @@ pub unsafe extern "C" fn current_tab(obj: *mut c_void) -> i64 {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn toggle_drawing_tool(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -864,7 +864,7 @@ pub unsafe extern "C" fn toggle_drawing_tool(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn toggle_drawing_tool_between_eraser(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -875,7 +875,7 @@ pub unsafe extern "C" fn toggle_drawing_tool_between_eraser(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn set_pencil_only_drawing(obj: *mut c_void, val: bool) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -888,7 +888,7 @@ pub unsafe extern "C" fn set_pencil_only_drawing(obj: *mut c_void, val: bool) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn unfocus_title(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -899,7 +899,7 @@ pub unsafe extern "C" fn unfocus_title(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn show_hide_tabs(obj: *mut c_void, show: bool) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -908,7 +908,7 @@ pub unsafe extern "C" fn show_hide_tabs(obj: *mut c_void, show: bool) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn close_active_tab(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -919,7 +919,7 @@ pub unsafe extern "C" fn close_active_tab(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn close_all_tabs(obj: *mut c_void) {
     let obj = &mut *(obj as *mut WgpuWorkspace);
@@ -930,7 +930,7 @@ pub unsafe extern "C" fn close_all_tabs(obj: *mut c_void) {
 }
 
 /// # Safety
-/// obj must be a valid pointer to WgpuEditor
+/// obj must be a valid pointer to WgpuWorkspace
 #[no_mangle]
 pub unsafe extern "C" fn ios_key_event(
     obj: *mut c_void, key_code: isize, shift: bool, ctrl: bool, option: bool, command: bool,
@@ -954,4 +954,13 @@ pub unsafe extern "C" fn ios_key_event(
             modifiers,
         });
     }
+}
+
+/// # Safety
+/// obj must be a valid pointer to WgpuWorkspace
+#[no_mangle]
+pub unsafe extern "C" fn trackpad_pinch(obj: *mut c_void, factor: f32) {
+    let obj = &mut *(obj as *mut WgpuWorkspace);
+
+    obj.raw_input.events.push(egui::Event::Zoom(factor))
 }

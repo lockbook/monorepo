@@ -746,12 +746,30 @@ public class iOSMTKDrawingWrapper: UIView, UIPencilInteractionDelegate {
         let pointerInteraction = UIPointerInteraction(delegate: mtkView)
         self.addInteraction(pointerInteraction)
         
+        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(self.handlePinch(_:)))
+        self.addGestureRecognizer(pinch)
+        
         self.isMultipleTouchEnabled = true
         set_pencil_only_drawing(wsHandle, prefersPencilOnlyDrawing)
     }
     
     @objc func handleTrackpadScroll(_ sender: UIPanGestureRecognizer? = nil) {
         mtkView.handleTrackpadScroll(sender)
+    }
+    
+    @objc func handlePinch(_ gesture: UIPinchGestureRecognizer) {
+        print("\ngot scroll event: \(gesture.scale)")
+        if gesture.numberOfTouches == 0 {
+            switch gesture.state {
+            case .began, .changed, .ended:
+                trackpad_pinch(wsHandle, Float(gesture.scale))
+                mtkView.setNeedsDisplay()
+                
+                gesture.scale = 1.0
+            default:
+                break
+            }
+        }
     }
 
     public func pencilInteractionDidTap(_ interaction: UIPencilInteraction) {
