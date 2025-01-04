@@ -7,3 +7,4 @@ pub mod errors;
 pub mod file;
 pub mod file_metadata;
 pub mod work_unit;
+pub mod mclone;

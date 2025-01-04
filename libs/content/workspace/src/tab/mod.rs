@@ -9,10 +9,11 @@ use lb_rs::blocking::Lb;
 use lb_rs::model::errors::{LbErr, LbErrKind};
 use lb_rs::model::file::File;
 use lb_rs::model::file_metadata::FileType;
-use lb_rs::Uuid;
-use tracing::instrument;
+use lb_rs::model::mclone::MultiClone;
+use lb_rs::{svg, Uuid};
 use std::path::{Component, Path, PathBuf};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use tracing::instrument;
 
 pub mod image_viewer;
 pub mod markdown_editor;
@@ -43,12 +44,19 @@ impl Tab {
                 seq: md.buffer.current.seq,
                 content: Content::Text(md.buffer.current.text.clone()),
             }),
-            TabContent::Svg(svg) => Some(SaveRequest {
-                id: self.id,
-                old_hmac: svg.buffer.open_file_hmac,
-                seq: 0,
-                content: Content::Svg(svg.buffer.clone()),
-            }),
+            TabContent::Svg(svg) => {
+                let fp = svg.buffer.footprint();
+                let mut new = svg::Buffer::allocate(fp);
+                svg.buffer.copy_into(&mut new);
+                // let new = svg.buffer.clone();
+
+                Some(SaveRequest {
+                    id: self.id,
+                    old_hmac: svg.buffer.open_file_hmac,
+                    seq: 0,
+                    content: Content::Svg(new),
+                })
+            }
             _ => return None,
         }
     }

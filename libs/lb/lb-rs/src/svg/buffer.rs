@@ -31,7 +31,7 @@ pub struct Buffer {
     pub elements: IndexMap<Uuid, Element>,
     pub weak_images: WeakImages,
     pub master_transform: Transform,
-    id_map: HashMap<Uuid, String>,
+    pub id_map: HashMap<Uuid, String>,
 }
 
 impl Buffer {

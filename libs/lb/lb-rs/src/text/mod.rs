@@ -9,6 +9,8 @@ use operation_types::Replace;
 use similar::DiffableStrRef as _;
 use unicode_segmentation::UnicodeSegmentation as _;
 
+pub use buffer::Buffer;
+
 pub fn diff(from: &str, to: &str) -> Vec<Replace> {
     let mut result = Vec::new();
 
