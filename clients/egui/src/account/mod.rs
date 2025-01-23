@@ -96,7 +96,7 @@ impl AccountScreen {
     }
 
     pub fn update(&mut self, ctx: &egui::Context) {
-        self.process_updates(ctx);
+        self.process_updates();
         self.process_keys(ctx);
         self.process_dropped_files(ctx);
         self.toasts.show(ctx);
@@ -217,10 +217,6 @@ impl AccountScreen {
                         }
                     }
 
-                    if wso.sync_done.is_some() {
-                        self.refresh_tree(ctx);
-                    }
-
                     for msg in wso.failure_messages {
                         self.toasts.error(msg);
                     }
@@ -254,7 +250,7 @@ impl AccountScreen {
         }
     }
 
-    fn process_updates(&mut self, ctx: &egui::Context) {
+    fn process_updates(&mut self) {
         while let Ok(update) = self.update_rx.try_recv() {
             match update {
                 AccountUpdate::OpenModal(open_modal) => match open_modal {
@@ -295,15 +291,12 @@ impl AccountScreen {
                     Err(msg) => self.modals.error = Some(ErrorModal::new(msg)),
                 },
                 AccountUpdate::FileImported(result) => match result {
-                    Ok(files) => {
+                    Ok(_) => {
                         self.modals.file_picker = None;
                     }
                     Err(msg) => self.modals.error = Some(ErrorModal::new(msg)),
                 },
-                AccountUpdate::FileCreated(result) => {}
-                AccountUpdate::FileDeleted(f) => {}
                 AccountUpdate::DoneDeleting => self.modals.confirm_delete = None,
-                AccountUpdate::ReloadTree(files) => {}
 
                 AccountUpdate::FinalSyncAttemptDone => {
                     if let Some(s) = &mut self.shutdown {
@@ -528,21 +521,6 @@ impl AccountScreen {
         }
     }
 
-    pub fn refresh_tree(&self, ctx: &egui::Context) {
-        let core = self.core.clone();
-        let ctx = ctx.clone();
-
-        let update_tx = self.update_tx.clone();
-
-        thread::spawn(move || {
-            let all_metas = core.list_metadatas().unwrap();
-            update_tx
-                .send(AccountUpdate::ReloadTree(all_metas))
-                .unwrap();
-            ctx.request_repaint();
-        });
-    }
-
     fn open_new_folder_modal(&mut self, maybe_parent: Option<File>) {
         let parent_id = match maybe_parent {
             Some(f) => {
@@ -567,12 +545,10 @@ impl AccountScreen {
         let parent = self.core.get_by_path(&params.parent_path).unwrap();
 
         let core = self.core.clone();
-        let update_tx = self.update_tx.clone();
         thread::spawn(move || {
-            let result = core
-                .create_file(&params.name, &parent.id, params.ftype)
-                .map_err(|err| format!("{:?}", err));
-            update_tx.send(AccountUpdate::FileCreated(result)).unwrap();
+            core.create_file(&params.name, &parent.id, params.ftype)
+                .map_err(|err| format!("{:?}", err))
+                .unwrap(); // todo
         });
     }
 
@@ -653,8 +629,6 @@ impl AccountScreen {
                     tab.path = self.core.get_path_by_id(f).unwrap();
                 }
             }
-
-            self.refresh_tree(ctx);
 
             ctx.request_repaint();
         }
@@ -766,9 +740,6 @@ impl AccountScreen {
         thread::spawn(move || {
             for f in &files {
                 core.delete_file(&f.id).unwrap(); // TODO
-                update_tx
-                    .send(AccountUpdate::FileDeleted(f.clone()))
-                    .unwrap();
             }
             update_tx.send(AccountUpdate::DoneDeleting).unwrap();
             ctx.request_repaint();
@@ -782,9 +753,7 @@ pub enum AccountUpdate {
     /// modal) don't automatically close the modal during the same frame.
     OpenModal(OpenModal),
 
-    FileCreated(Result<File, String>),
     FileShared(Result<(), String>),
-    FileDeleted(File),
 
     /// if a file has been imported successfully refresh the tree, otherwise show what went wrong
     FileImported(Result<Vec<File>, String>),
@@ -792,8 +761,6 @@ pub enum AccountUpdate {
     ShareAccepted(Result<File, String>),
 
     DoneDeleting,
-
-    ReloadTree(Vec<File>),
 
     FinalSyncAttemptDone,
 }
