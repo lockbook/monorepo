@@ -126,11 +126,11 @@ impl Workspace {
                 if let Some(tab) = self.tabs.get_mut(self.active_tab) {
                     if let Some(fail) = &tab.failure {
                         match fail {
-                            TabFailure::DeletedFromSync => {
+                            TabFailure::Deleted => {
                                 ui.vertical_centered(|ui| {
                                     ui.add_space(50.0);
                                     ui.label(format!(
-                                        "This file ({}) was deleted after syncing.",
+                                        "Cannot show this file because it has been deleted\n{}",
                                         tab.path
                                     ));
                                 });

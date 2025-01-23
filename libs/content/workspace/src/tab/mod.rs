@@ -113,7 +113,7 @@ impl TabSaveContent {
 
 #[derive(Debug)]
 pub enum TabFailure {
-    DeletedFromSync,
+    Deleted,
     SimpleMisc(String),
     Unexpected(String),
 }

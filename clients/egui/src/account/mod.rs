@@ -70,7 +70,7 @@ impl AccountScreen {
             update_tx,
             update_rx,
             is_new_user,
-            tree: FileTree::new(files),
+            tree: FileTree::new(&files),
             full_search_doc: FullDocSearch::default(),
             sync: SyncPanel::new(sync_status),
             usage,
@@ -205,48 +205,26 @@ impl AccountScreen {
                     });
                 }
 
-                if let Some((id, new_name)) = wso.file_renamed {
-                    for file in self.tree.files.iter_mut() {
-                        if file.id == id {
-                            file.name = new_name;
-                            break;
+                if let Some(files) = &self.workspace.files {
+                    if let Some(file) = wso.selected_file {
+                        if !self.tree.selected.contains(&file) {
+                            self.tree.cursor = Some(file);
+                            self.tree.selected.clear();
+                            self.tree.selected.insert(file);
+                            self.tree.reveal_selection(&files.files);
+                            self.tree.scroll_to_cursor = true;
+                            ctx.request_repaint();
                         }
                     }
-                    self.tree.recalc_suggested_files(&self.core, ctx);
-                    ctx.request_repaint();
-                }
-                if let Some((id, new_parent)) = wso.file_moved {
-                    for file in self.tree.files.iter_mut() {
-                        if file.id == id {
-                            file.parent = new_parent;
-                            break;
-                        }
+
+                    if wso.sync_done.is_some() {
+                        self.refresh_tree(ctx);
                     }
-                    ctx.request_repaint();
-                }
 
-                if let Some(result) = wso.file_created {
-                    self.file_created(ctx, result);
-                }
-
-                if let Some(file) = wso.selected_file {
-                    if !self.tree.selected.contains(&file) {
-                        self.tree.cursor = Some(file);
-                        self.tree.selected.clear();
-                        self.tree.selected.insert(file);
-                        self.tree.reveal_selection();
-                        self.tree.scroll_to_cursor = true;
-                        ctx.request_repaint();
+                    for msg in wso.failure_messages {
+                        self.toasts.error(msg);
                     }
-                }
-
-                if wso.sync_done.is_some() {
-                    self.refresh_tree(ctx);
-                }
-
-                for msg in wso.failure_messages {
-                    self.toasts.error(msg);
-                }
+                };
             });
 
         if self.is_new_user {
@@ -318,21 +296,14 @@ impl AccountScreen {
                 },
                 AccountUpdate::FileImported(result) => match result {
                     Ok(files) => {
-                        self.tree.update_files(files);
                         self.modals.file_picker = None;
                     }
                     Err(msg) => self.modals.error = Some(ErrorModal::new(msg)),
                 },
-                AccountUpdate::FileCreated(result) => self.file_created(ctx, result),
-                AccountUpdate::FileDeleted(f) => {
-                    // inefficient but fine
-                    let mut files = self.tree.files.clone();
-                    files.retain(|file| file.id != f.id);
-                    self.tree.update_files(files);
-                    self.tree.recalc_suggested_files(&self.core, ctx);
-                }
+                AccountUpdate::FileCreated(result) => {}
+                AccountUpdate::FileDeleted(f) => {}
                 AccountUpdate::DoneDeleting => self.modals.confirm_delete = None,
-                AccountUpdate::ReloadTree(files) => self.tree.update_files(files),
+                AccountUpdate::ReloadTree(files) => {}
 
                 AccountUpdate::FinalSyncAttemptDone => {
                     if let Some(s) = &mut self.shutdown {
@@ -438,7 +409,10 @@ impl AccountScreen {
                         .stroke(Stroke::NONE)
                         .show(ui, |ui| {
                             ui.allocate_space(Vec2 { x: ui.available_width(), y: 0. });
-                            self.tree.show(ui, max_rect, &mut self.toasts)
+                            let Some(files) = &self.workspace.files else {
+                                return Default::default();
+                            };
+                            self.tree.show(ui, max_rect, &mut self.toasts, &files.files)
                         })
                 })
             })
@@ -482,15 +456,17 @@ impl AccountScreen {
         }
 
         if !resp.delete_requests.is_empty() {
-            let files = resp
-                .delete_requests
-                .iter()
-                .map(|&id| self.tree.files.get_by_id(id))
-                .cloned()
-                .collect();
-            self.update_tx
-                .send(OpenModal::ConfirmDelete(files).into())
-                .unwrap();
+            if let Some(files) = &self.workspace.files {
+                let files = resp
+                    .delete_requests
+                    .iter()
+                    .map(|&id| files.files.get_by_id(id))
+                    .cloned()
+                    .collect();
+                self.update_tx
+                    .send(OpenModal::ConfirmDelete(files).into())
+                    .unwrap();
+            }
         }
 
         if let Some(id) = resp.dropped_on {
@@ -603,11 +579,13 @@ impl AccountScreen {
     fn focused_parent(&mut self) -> Option<Uuid> {
         if let Some(cursor) = self.tree.cursor {
             if cursor != self.tree.suggested_docs_folder_id {
-                let cursor = self.tree.files.get_by_id(cursor);
-                if cursor.is_folder() {
-                    return Some(cursor.id);
-                } else {
-                    return Some(cursor.parent);
+                if let Some(files) = &self.workspace.files {
+                    let cursor = files.files.get_by_id(cursor);
+                    if cursor.is_folder() {
+                        return Some(cursor.id);
+                    } else {
+                        return Some(cursor.parent);
+                    }
                 }
             }
         }
@@ -627,53 +605,59 @@ impl AccountScreen {
     }
 
     fn move_selected_files_to(&mut self, ctx: &egui::Context, target: Uuid) {
-        // pre-check cyclic moves for atomicity
-        for &file in &self.tree.selected {
-            let descendents = self
-                .tree
-                .files
-                .descendents(file)
-                .into_iter()
-                .map(|f| f.id)
-                .collect::<Vec<_>>();
-            if descendents.contains(&target) {
-                // todo: show error
-                println!("cannot move folder into self");
-                return;
+        if let Some(files) = &self.workspace.files {
+            // pre-check cyclic moves for atomicity
+            for &file in &self.tree.selected {
+                let descendents = files
+                    .files
+                    .descendents(file)
+                    .into_iter()
+                    .map(|f| f.id)
+                    .collect::<Vec<_>>();
+                if descendents.contains(&target) {
+                    // todo: show error
+                    println!("cannot move folder into self");
+                    return;
+                }
             }
-        }
 
-        // pre-check name conflicts for atomicity
-        let target_children = self.tree.files.children(target);
-        for &file in &self.tree.selected {
-            let name = self.tree.files.get_by_id(file).name.clone();
-            if target_children.iter().any(|f| f.name == name) {
-                // todo: show error
-                println!("cannot move file into folder containing file with same name");
-                return;
+            // pre-check name conflicts for atomicity
+            let target_children = files.files.children(target);
+            for &file in &self.tree.selected {
+                let name = files.files.get_by_id(file).name.clone();
+                if target_children.iter().any(|f| f.name == name) {
+                    // todo: show error
+                    println!("cannot move file into folder containing file with same name");
+                    return;
+                }
             }
-        }
 
-        // move files
-        for &f in &self.tree.selected {
-            if self.tree.files.get_by_id(f).parent == target {
-                continue;
+            // move files
+            let mut paths_to_update = Vec::new();
+            for &f in &self.tree.selected {
+                if files.files.get_by_id(f).parent == target {
+                    continue;
+                }
+                if let Err(err) = self.core.move_file(&f, &target) {
+                    // todo: show error
+                    println!("error moving file: {:?}", err);
+                    return;
+                } else {
+                    paths_to_update.push(f);
+                    ctx.request_repaint();
+                }
             }
-            if let Err(err) = self.core.move_file(&f, &target) {
-                // todo: show error
-                println!("error moving file: {:?}", err);
-                return;
-            } else {
+
+            for f in paths_to_update {
                 if let Some(tab) = self.workspace.get_mut_tab_by_id(f) {
                     tab.path = self.core.get_path_by_id(f).unwrap();
                 }
-                ctx.request_repaint();
             }
+
+            self.refresh_tree(ctx);
+
+            ctx.request_repaint();
         }
-
-        self.refresh_tree(ctx);
-
-        ctx.request_repaint();
     }
 
     fn export_file(&mut self, f: File, dest: PathBuf) {
@@ -789,30 +773,6 @@ impl AccountScreen {
             update_tx.send(AccountUpdate::DoneDeleting).unwrap();
             ctx.request_repaint();
         });
-    }
-
-    fn file_created(&mut self, ctx: &egui::Context, result: Result<File, String>) {
-        match result {
-            Ok(f) => {
-                let (id, is_doc) = (f.id, f.is_document());
-
-                // inefficient but works
-                let mut files = self.tree.files.clone();
-                files.push(f);
-                self.tree.update_files(files);
-
-                if is_doc {
-                    self.workspace.open_file(id, true, true);
-                }
-                self.modals.new_folder = None;
-                ctx.request_repaint();
-            }
-            Err(msg) => {
-                if let Some(m) = &mut self.modals.new_folder {
-                    m.err_msg = Some(msg)
-                }
-            }
-        }
     }
 }
 

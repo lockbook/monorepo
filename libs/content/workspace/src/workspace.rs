@@ -247,7 +247,7 @@ impl Workspace {
             Err(err) => {
                 if let Some(t) = self.tabs.iter_mut().find(|t| t.id == id) {
                     t.failure = match err.kind {
-                        LbErrKind::FileNonexistent => Some(TabFailure::DeletedFromSync),
+                        LbErrKind::FileNonexistent => Some(TabFailure::Deleted),
                         _ => Some(err.into()),
                     }
                 }
