@@ -689,11 +689,16 @@ impl Workspace {
         let icon_size = 16.0;
         let x_icon = Icon::CLOSE.size(icon_size);
         let status = self.tab_status(t);
-        let status_icon = status.icon();
+        let mut status_icon = status.icon();
+        status_icon.size = 15.0;
 
-        let padding_x = 10.;
-        let w = if self.tabs[t].is_closing { 40. } else { 160. };
-        let h = 40.;
+        let padding_x = 7.5;
+        let w = if self.tabs[t].is_closing { 40. } else { 110. };
+        let h = 35.;
+
+        ui.style_mut()
+            .text_styles
+            .insert(egui::TextStyle::Body, egui::FontId::new(14.0, egui::FontFamily::Proportional));
 
         let (tab_label_rect, tab_label_resp) = ui.allocate_exact_size(
             (w, h).into(),
@@ -833,8 +838,13 @@ impl Workspace {
                     status_icon.size,
                     egui::TextStyle::Body,
                 );
-                ui.painter()
-                    .galley(icon_draw_pos, icon, ui.visuals().text_color());
+
+                let opacity = if is_active { 1.0 } else { 0.5 };
+                ui.painter().galley(
+                    icon_draw_pos,
+                    icon,
+                    ui.visuals().text_color().linear_multiply(opacity),
+                );
             }
 
             // status icon tooltip explains situation
@@ -892,9 +902,16 @@ impl Workspace {
                 ui,
                 Some(TextWrapMode::Truncate),
                 wrap_width,
-                egui::TextStyle::Small,
+                egui::TextStyle::Body,
             );
-            let text_color = ui.style().interact(&tab_label_resp).text_color();
+            let opacity = if is_active { 1.0 } else { 0.8 };
+
+            let text_color = ui
+                .style()
+                .interact(&tab_label_resp)
+                .text_color()
+                .linear_multiply(opacity);
+
             let text_pos = egui::pos2(
                 tab_label_rect.min.x + padding_x + status_icon.size + padding_x,
                 tab_label_rect.center().y - 0.5 * text.size().y,
