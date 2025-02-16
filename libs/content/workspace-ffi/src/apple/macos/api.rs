@@ -33,7 +33,7 @@ pub unsafe extern "C" fn key_event(
         let text = CStr::from_ptr(characters).to_str().unwrap().to_string();
         obj.raw_input.events.push(Event::Text(text));
     }
-
+  
     // Event::Key
     if let Some(key) = key.egui_key() {
         obj.raw_input.events.push(Event::Key {
