@@ -204,6 +204,7 @@ impl Workspace {
             load_queued: false,
         };
         self.tabs.push(new_tab);
+        self.out.tabs_changed = true;
         if make_active {
             self.active_tab = self.tabs.len() - 1;
             self.active_tab_changed = true;
