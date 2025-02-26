@@ -61,9 +61,9 @@ impl LbWebApp {
 
 fn generate_visuals() -> egui::Visuals {
     let mut visuals = egui::Visuals::dark();
-    visuals.extreme_bg_color = egui::Color32::from_hex("#242B30").unwrap();
-    visuals.code_bg_color = egui::Color32::from_hex("#DF5F28").unwrap();
-    visuals.faint_bg_color = egui::Color32::BLUE;
+    visuals.extreme_bg_color = egui::Color32::from_hex("#1A1A1A").unwrap();
+    visuals.code_bg_color = egui::Color32::from_hex("#282828").unwrap();
+    visuals.faint_bg_color = visuals.code_bg_color;
     visuals.widgets.noninteractive.bg_fill = visuals.extreme_bg_color;
 
     visuals
