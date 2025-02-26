@@ -79,47 +79,62 @@ impl eframe::App for LbWebApp {
                 if self.editor.is_none() && self.initial_screen == InitialScreen::Editor {
                     self.editor = Some(Editor::new(
                         self.workspace.core.clone(),
-                        r#"# Hello web surfer
+                        r#"# Live Demo
+Try our text editor! This is the same experience you'll get in-app.
 
-Welcome to Lockbook! This is an example note to help you get started with our note editor. You can keep it to use as a cheat sheet or delete it anytime.
+Lockbook uses Markdown, a simple text formatting language that lets you style your document just by typing. Every style has a simple syntax, like `**bold**` or `*italic*`. You can always use the toolbar if you forget or don't want to bother.
 
-Lockbook uses Markdown, a lightweight language for formatting plain text. You can use all our supported formatting just by typing. Here’s how it works:
+Hover or click on styled text to show the formatting syntax. Try it on these examples:
 
-# This is a heading
-
-For italic, use single *asterisks* or _underscores_.
-
-For bold, use double **asterisks** or __underscores__.
-
-For inline code, use single `backticks`
-
-For code blocks, use
+## Headings
 ```
-triple
-backticks
+# Heading 1
+## Heading 2
+### Heading 3
 ```
 
->For block quotes,
-use a greater-than sign
+# Heading 1
+## Heading 2
+### Heading 3
 
-Bulleted list items
-* start
-* with
-* asterisks
-- or
-- hyphens
-+ or
-+ plus
-+ signs
+## Text Styles
+- **Bold**: `**Bold**`
+- *Italic*: `*Italic*`
+- **_Bold and Italic_**: `***Bold and Italic***`
+- ~~Strikethrough~~: `~~Strikethrough~~`
 
-Numbered list items
-1. start
-2. with
-3. numbers
-4. and
-5. periods
+## Lists
+### Unordered List
+```
+- Apples
+- Oranges
+    - Sub-item
+- Bananas
+```
+- Apples
+- Oranges
+    - Sub-item
+- Bananas
 
-Happy note taking! You can report any issues to our [Github project](https://github.com/lockbook/lockbook/issues/new) or join our [Discord server](https://discord.gg/qv9fmAZCm6)."#,
+### Ordered List
+```
+1. First item
+2. Second item
+    1. Sub-item
+3. Third item
+```
+1. First item
+2. Second item
+    1. Sub-item
+3. Third item
+
+## Links
+Links: cmd+click or ctrl+click to open in a new tab.
+```
+[Lockbook Website](https://lockbook.net)
+```
+[Lockbook Website](https://lockbook.net)
+"#,
                         Uuid::new_v4(),
                         None,
                         false,

@@ -1,6 +1,8 @@
 {% extends "base.html" %} {% block content %}
-<div class="bg-gradient-to-b from-lbneutral-800 to-lbneutral-900">
-    <div class="relative p-20 max-w-screen-xl mx-auto">
+<div
+    class="min-h-[60vh] p-10 content-center bg-gradient-to-b from-lbneutral-800 to-lbneutral-900"
+>
+    <div class="relative max-w-screen-xl mx-auto">
         <h1
             class="max-w-4xl px-3 mx-auto mb-14 text-3xl/relaxed [word-spacing:-8px] lg:text-center lg:text-4xl/snug font-thin text-lbneutral-100"
         >
@@ -72,7 +74,9 @@
     </div>
 </div>
 
-<div class="p-20 bg-lbneutral-900 text-lbneutral-100">
+<div
+    class="min-h-[80vh] p-10 content-center bg-lbneutral-900 text-lbneutral-100"
+>
     <div
         class="mx-auto w-1/2 h-[34rem] max-sm:h-72 relative max-sm:w-full max-sm:mt-36"
     >
@@ -152,7 +156,112 @@
     </div>
 </div>
 
-<div class="p-20 bg-lbneutral-900 text-lbneutral-100 max-sm:pb-32">
+<!-- the id is hardcoded in main.rs. change with caution  -->
+<div class="max-w-screen-lg mx-auto mt-40 px-7">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <!-- Editor Demo -->
+        <div class="relative h-[40rem] bg-lbneutral-800 p-5">
+            <canvas id="editor-demo" class="w-full h-full"></canvas>
+            <div
+                class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center text-lbneutral-100 bg-lbneutral-700"
+                id="editor-loading"
+            >
+                <p class="mb-4">Editor Demo</p>
+                <div class="lds-ring">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas Demo -->
+        <div class="relative h-[40rem] bg-lbneutral-800 p-5">
+            <canvas id="canvas_demo" class="w-full h-full"></canvas>
+            <div
+                class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center text-lbneutral-100 bg-lbneutral-700"
+                id="canvas-loading"
+            >
+                <p class="mb-4">Canvas Demo</p>
+                <div class="lds-ring">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div
+    class="min-h-[80vh] p-10 content-center max-sm:pb-0 text-lbneutral-100"
+    id="pricing"
+>
+    <div class="px-3 text-center max-sm:text-left">
+        <h2 class="pt-24 text-2xl font-light">
+            <span>Pricing</span><span class="text-lbneutral-500">:</span>
+        </h2>
+        <h3 class="mt-2 mb-20">
+            <span>Be the customer</span
+            ><span class="text-lbneutral-500">, </span>
+            <span>not the product</span
+            ><span class="text-lbneutral-500">. </span>
+            <span>We sell a note</span><span class="text-lbneutral-500">-</span
+            ><span>taking app</span><span class="text-lbneutral-500">, </span>
+            <span>not your data</span><span class="text-lbneutral-500">. </span>
+        </h3>
+    </div>
+
+    <div class="flex justify-center max-sm:flex-col max-sm:mx-7">
+        <div class="bg-lbneutral-900 p-11">
+            <h4 class="mb-12 text-xl font-bold">Free</h4>
+            <ul class="mb-20 text-xs list-disc list-inside">
+                <li class="mb-4">1MB storage capacity</li>
+                <li class="mb-4">sharing and collaboration</li>
+                <li class="mb-4">markdown support</li>
+                <li class="mb-4">drawing support</li>
+                <li class="mb-4">offline mode</li>
+            </ul>
+            <a
+                href="#"
+                class="px-6 py-2 text-sm bg-lbgreen-700 text-lbneutral-900 font-xs font-bold"
+                id="free-download"
+                >Download</a
+            >
+        </div>
+
+        <div
+            class="w-full max-w-xl ml-8 max-sm:ml-0 bg-lbneutral-800 text-lbneutral-100 p-11 max-sm:py-20"
+        >
+            <div class="flex flex-row justify-between mb-8">
+                <h4 class="text-xl font-bold">Premium</h4>
+                <div>
+                    <h4 class="text-xl font-bold">$2.99</h4>
+                    <p class="text-xs text-right">monthly</p>
+                </div>
+            </div>
+            <ul class="mb-20 text-xs list-disc list-inside">
+                <li class="mb-4">30GB storage capacity</li>
+                <li class="mb-4 opacity-60">sharing and collaboration</li>
+                <li class="mb-4 opacity-60">markdown support</li>
+                <li class="mb-4 opacity-60">drawing support</li>
+                <li class="mb-4 opacity-60">offline mode</li>
+            </ul>
+            <a
+                href="#"
+                class="px-6 py-2 text-sm bg-lbneutral-900 text-lbneutral-500"
+                id="paid-download"
+                >Purchase in-app</a
+            >
+        </div>
+    </div>
+</div>
+
+<div
+    class="min-h-[80vh] p-10 content-center bg-lbneutral-900 text-lbneutral-100 max-sm:pb-32"
+>
     <h2
         class="pt-24 text-2xl max-w-4xl px-3 mx-auto p-8 lg:text-center lg:text-2xl/snug font-light text-lbneutral-300"
     >
@@ -280,124 +389,12 @@
     </div>
 </div>
 
-<!-- the id is hardcoded in main.rs. change with caution  -->
-<!-- <div class="max-w-[38rem] m-auto mt-40 h-[40rem] mb-10 relative">
-    <canvas id="editor-demo" class="w-full h-full"></canvas>
-    <div
-        class="absolute top-0 left-0 w-full h-full p-12 text-center bg-lbneutral-700 text-lbneutral-100"
-        id="editor-loading"
-    >
-        <div class="flex items-center justify-center">
-            <p>Editor Demo</p>
-            <div class="lds-ring">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
-        </div>
-    </div>
-    <span
-        class="absolute top-0 left-0 w-full h-full pointer-events-none bg-[linear-gradient(to_top,_theme('colors.lbneutral.900')_2%,_transparent_30%)]"
-    ></span>
-</div>
-
-<div class="w-full m-auto mt-40 h-[40rem] relative">
-    <div class="flex h-full">
-        <div
-            class="w-[15vw] bg-[linear-gradient(90deg,_theme('colors.lbneutral.900'),_theme('colors.lbneutral.700'))]"
-        ></div>
-        <div class="w-[70vw]">
-            <canvas id="canvas_demo" class="w-full h-full"></canvas>
-        </div>
-        <div
-            class="w-[15vw] bg-[linear-gradient(-90deg,_theme('colors.lbneutral.900'),_theme('colors.lbneutral.700'))]"
-        ></div>
-    </div>
-
-    <div
-        class="absolute top-0 left-0 w-full h-full p-12 text-center bg-lbneutral-700 text-lbneutral-100"
-        id="canvas-loading"
-    >
-        <div class="flex items-center justify-center">
-            <p>Canvas Demo</p>
-            <div class="lds-ring">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
-        </div>
-    </div>
-</div> -->
-
-<div class="pb-32 max-sm:pb-0 text-lbneutral-100" id="pricing">
-    <div class="px-3 text-center max-sm:text-left">
-        <h2 class="pt-24 text-2xl font-light">
-            <span>Pricing</span><span class="text-lbneutral-500">:</span>
-        </h2>
-        <h3 class="mt-2 mb-20">
-            <span>Be the customer</span
-            ><span class="text-lbneutral-500">, </span>
-            <span>not the product</span
-            ><span class="text-lbneutral-500">. </span>
-            <span>We sell a note</span><span class="text-lbneutral-500">-</span
-            ><span>taking app</span><span class="text-lbneutral-500">, </span>
-            <span>not your data</span><span class="text-lbneutral-500">. </span>
-        </h3>
-    </div>
-
-    <div class="flex justify-center max-sm:flex-col max-sm:mx-7">
-        <div class="bg-lbneutral-900 p-11">
-            <h4 class="mb-12 text-xl font-bold">Free</h4>
-            <ul class="mb-20 text-xs list-disc list-inside">
-                <li class="mb-4">1MB storage capacity</li>
-                <li class="mb-4">sharing and collaboration</li>
-                <li class="mb-4">markdown support</li>
-                <li class="mb-4">drawing support</li>
-                <li class="mb-4">offline mode</li>
-            </ul>
-            <a
-                href="#"
-                class="px-6 py-2 text-sm bg-lbgreen-700 text-lbneutral-900 font-xs font-bold"
-                id="free-download"
-                >Download</a
-            >
-        </div>
-
-        <div
-            class="w-full max-w-xl ml-8 max-sm:ml-0 bg-lbneutral-800 text-lbneutral-100 p-11 max-sm:py-20"
-        >
-            <div class="flex flex-row justify-between mb-8">
-                <h4 class="text-xl font-bold">Premium</h4>
-                <div>
-                    <h4 class="text-xl font-bold">$2.99</h4>
-                    <p class="text-xs text-right">monthly</p>
-                </div>
-            </div>
-            <ul class="mb-20 text-xs list-disc list-inside">
-                <li class="mb-4">30GB storage capacity</li>
-                <li class="mb-4 opacity-60">sharing and collaboration</li>
-                <li class="mb-4 opacity-60">markdown support</li>
-                <li class="mb-4 opacity-60">drawing support</li>
-                <li class="mb-4 opacity-60">offline mode</li>
-            </ul>
-            <a
-                href="#"
-                class="px-6 py-2 text-sm bg-lbneutral-900 text-lbneutral-500"
-                id="paid-download"
-                >Purchase in-app</a
-            >
-        </div>
-    </div>
-</div>
-
-<div class="bg-gradient-to-b from-lbneutral-900 to-lbneutral-800">
+<div class="min-h-[30vh] bg-gradient-to-b from-lbneutral-900 to-lbneutral-800">
     <div
         class="relative py-20 pl-24 max-sm:px-3 text-lbneutral-100"
         id="download"
     >
-        <h1 class="text-4xl font-bold mb-28 max-sm:text-3xl">
+        <h1 class="text-4xl font-light mb-28 max-sm:text-3xl">
             <span>Unlock your thoughts</span
             ><span class="text-lbneutral-500">!</span>
         </h1>
@@ -412,15 +409,10 @@
             >
             <p class="ml-8 text-xs font-extralight max-sm:mx-0 max-sm:mt-4">
                 also available for
-                <a href="#" class="underline font-bold text-lbblue-700">iOS</a>,
-                <a href="#" class="underline font-bold text-lbblue-700"
-                    >android</a
-                >,
-                <a href="#" class="underline font-bold text-lbblue-700">linux</a
-                >, and
-                <a href="#" class="underline font-bold text-lbblue-700"
-                    >windows</a
-                >
+                <a href="#" class="font-bold text-lbblue-700">iOS</a>,
+                <a href="#" class="font-bold text-lbblue-700">Android</a>,
+                <a href="#" class="font-bold text-lbblue-700">Linux</a>, and
+                <a href="#" class="font-bold text-lbblue-700">Windows</a>
             </p>
         </div>
         <div
